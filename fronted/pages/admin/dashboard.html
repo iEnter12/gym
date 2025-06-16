@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据仪表盘 - 体育场馆预约系统</title>
+    <link rel="stylesheet" href="../../assets/css/common.css">
+    <link rel="stylesheet" href="../../assets/css/admin.css">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/dayjs@1.11.10/dayjs.min.js"></script>
+    <script src="https://unpkg.com/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- 侧边栏 -->
+        <div class="admin-sidebar" :class="{ collapsed: sidebarCollapsed }">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="el-icon-trophy"></i>
+                    <span v-if="!sidebarCollapsed">管理后台</span>
+                </div>
+                <el-button
+                    type="text"
+                    @click="sidebarCollapsed = !sidebarCollapsed"
+                    class="collapse-btn">
+                    <i :class="sidebarCollapsed ? 'el-icon-s-unfold' : 'el-icon-s-fold'"></i>
+                </el-button>
+            </div>
+            
+            <div class="sidebar-menu">
+                <el-menu
+                    :default-active="activeMenu"
+                    :collapse="sidebarCollapsed"
+                    background-color="#2c3e50"
+                    text-color="#ecf0f1"
+                    active-text-color="#3498db">
+                    
+                    <el-menu-item index="dashboard" @click="goToPage('dashboard')">
+                        <i class="el-icon-data-analysis"></i>
+                        <span slot="title">数据仪表盘</span>
+                    </el-menu-item>
+                    
+                    <el-menu-item index="facilities" @click="goToPage('facilities')">
+                        <i class="el-icon-office-building"></i>
+                        <span slot="title">场馆管理</span>
+                    </el-menu-item>
+                    
+                    <el-menu-item index="bookings" @click="goToPage('bookings')">
+                        <i class="el-icon-tickets"></i>
+                        <span slot="title">预约管理</span>
+                    </el-menu-item>
+                    
+                    <el-menu-item index="reports" @click="goToPage('reports')">
+                        <i class="el-icon-document"></i>
+                        <span slot="title">统计报表</span>
+                    </el-menu-item>
+                    
+                    <el-menu-item index="users" @click="goToPage('users')">
+                        <i class="el-icon-user"></i>
+                        <span slot="title">用户管理</span>
+                    </el-menu-item>
+                </el-menu>
+            </div>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <div class="admin-main" :class="{ expanded: sidebarCollapsed }">
+            <!-- 顶部导航 -->
+            <div class="admin-header">
+                <div class="header-left">
+                    <h1>数据仪表盘</h1>
+                    <span class="page-desc">实时监控系统运营数据</span>
+                </div>
+                
+                <div class="header-right">
+                    <el-dropdown @command="handleUserCommand">
+                        <span class="user-dropdown">
+                            <el-avatar :src="adminInfo.avatar" :size="32">
+                                {{ adminInfo.real_name ? adminInfo.real_name.charAt(0) : 'A' }}
+                            </el-avatar>
+                            <span class="username">{{ adminInfo.real_name || adminInfo.username }}</span>
+                            <i class="el-icon-arrow-down"></i>
+                        </span>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item command="profile">个人资料</el-dropdown-item>
+                            <el-dropdown-item command="settings">系统设置</el-dropdown-item>
+                            <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </div>
+            </div>
+
+            <!-- 仪表盘内容 -->
+            <div class="dashboard-content">
+                <!-- 关键指标卡片 -->
+                <div class="metrics-section">
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-icon" style="background: #3498db;">
+                                <i class="el-icon-user"></i>
+                            </div>
+                            <div class="metric-info">
+                                <div class="metric-value">{{ dashboardData.totalUsers }}</div>
+                                <div class="metric-label">总用户数</div>
+                                <div class="metric-change positive">
+                                    <i class="el-icon-arrow-up"></i>
+                                    +{{ dashboardData.userGrowth }}%
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-icon" style="background: #2ecc71;">
+                                <i class="el-icon-tickets"></i>
+                            </div>
+                            <div class="metric-info">
+                                <div class="metric-value">{{ dashboardData.totalBookings }}</div>
+                                <div class="metric-label">总预约数</div>
+                                <div class="metric-change positive">
+                                    <i class="el-icon-arrow-up"></i>
+                                    +{{ dashboardData.bookingGrowth }}%
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-icon" style="background: #f39c12;">
+                                <i class="el-icon-money"></i>
+                            </div>
+                            <div class="metric-info">
+                                <div class="metric-value">¥{{ dashboardData.totalRevenue }}</div>
+                                <div class="metric-label">总收入</div>
+                                <div class="metric-change positive">
+                                    <i class="el-icon-arrow-up"></i>
+                                    +{{ dashboardData.revenueGrowth }}%
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-icon" style="background: #e74c3c;">
+                                <i class="el-icon-office-building"></i>
+                            </div>
+                            <div class="metric-info">
+                                <div class="metric-value">{{ dashboardData.totalFacilities }}</div>
+                                <div class="metric-label">场馆数量</div>
+                                <div class="metric-change neutral">
+                                    <i class="el-icon-minus"></i>
+                                    {{ dashboardData.facilityGrowth }}%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 图表区域 -->
+                <div class="charts-section">
+                    <div class="charts-grid">
+                        <!-- 预约趋势图 -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3>预约趋势</h3>
+                                <el-radio-group v-model="bookingTrendPeriod" size="small">
+                                    <el-radio-button label="7d">7天</el-radio-button>
+                                    <el-radio-button label="30d">30天</el-radio-button>
+                                    <el-radio-button label="90d">90天</el-radio-button>
+                                </el-radio-group>
+                            </div>
+                            <div class="chart-container">
+                                <div id="bookingTrendChart" style="width: 100%; height: 300px;"></div>
+                            </div>
+                        </div>
+
+                        <!-- 场馆使用率 -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3>场馆使用率</h3>
+                                <el-button type="text" size="small">查看详情</el-button>
+                            </div>
+                            <div class="chart-container">
+                                <div id="facilityUsageChart" style="width: 100%; height: 300px;"></div>
+                            </div>
+                        </div>
+
+                        <!-- 收入分析 -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3>收入分析</h3>
+                                <el-date-picker
+                                    v-model="revenueMonth"
+                                    type="month"
+                                    placeholder="选择月份"
+                                    size="small">
+                                </el-date-picker>
+                            </div>
+                            <div class="chart-container">
+                                <div id="revenueChart" style="width: 100%; height: 300px;"></div>
+                            </div>
+                        </div>
+
+                        <!-- 用户活跃度 -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3>用户活跃度</h3>
+                                <el-button type="text" size="small">导出数据</el-button>
+                            </div>
+                            <div class="chart-container">
+                                <div id="userActivityChart" style="width: 100%; height: 300px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 实时数据和快捷操作 -->
+                <div class="bottom-section">
+                    <div class="bottom-grid">
+                        <!-- 实时预约 -->
+                        <div class="realtime-card">
+                            <div class="card-header">
+                                <h3>实时预约</h3>
+                                <el-tag type="success" size="small">实时更新</el-tag>
+                            </div>
+                            <div class="realtime-list">
+                                <div
+                                    v-for="booking in realtimeBookings"
+                                    :key="booking.id"
+                                    class="realtime-item">
+                                    <div class="booking-info">
+                                        <div class="booking-user">{{ booking.user_name }}</div>
+                                        <div class="booking-facility">{{ booking.facility_name }}</div>
+                                        <div class="booking-time">{{ formatTime(booking.create_time) }}</div>
+                                    </div>
+                                    <div class="booking-amount">¥{{ booking.amount }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 系统状态 -->
+                        <div class="status-card">
+                            <div class="card-header">
+                                <h3>系统状态</h3>
+                                <el-tag type="success" size="small">正常运行</el-tag>
+                            </div>
+                            <div class="status-list">
+                                <div class="status-item">
+                                    <span class="status-label">服务器状态</span>
+                                    <el-tag type="success" size="mini">正常</el-tag>
+                                </div>
+                                <div class="status-item">
+                                    <span class="status-label">数据库连接</span>
+                                    <el-tag type="success" size="mini">正常</el-tag>
+                                </div>
+                                <div class="status-item">
+                                    <span class="status-label">支付系统</span>
+                                    <el-tag type="success" size="mini">正常</el-tag>
+                                </div>
+                                <div class="status-item">
+                                    <span class="status-label">消息推送</span>
+                                    <el-tag type="warning" size="mini">延迟</el-tag>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 快捷操作 -->
+                        <div class="actions-card">
+                            <div class="card-header">
+                                <h3>快捷操作</h3>
+                            </div>
+                            <div class="actions-grid">
+                                <el-button type="primary" icon="el-icon-plus" @click="goToPage('facilities')">
+                                    添加场馆
+                                </el-button>
+                                <el-button type="success" icon="el-icon-document" @click="goToPage('reports')">
+                                    生成报表
+                                </el-button>
+                                <el-button type="warning" icon="el-icon-message" @click="sendNotification">
+                                    发送通知
+                                </el-button>
+                                <el-button type="info" icon="el-icon-download" @click="exportData">
+                                    导出数据
+                                </el-button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../utils/api.js"></script>
+    <script src="../../utils/auth.js"></script>
+    <script src="../../utils/mock.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    adminInfo: {},
+                    sidebarCollapsed: false,
+                    activeMenu: 'dashboard',
+                    bookingTrendPeriod: '30d',
+                    revenueMonth: new Date(),
+                    dashboardData: {
+                        totalUsers: 1248,
+                        userGrowth: 12.5,
+                        totalBookings: 3567,
+                        bookingGrowth: 8.3,
+                        totalRevenue: 156780,
+                        revenueGrowth: 15.2,
+                        totalFacilities: 12,
+                        facilityGrowth: 0
+                    },
+                    realtimeBookings: [
+                        { id: 1, user_name: '张三', facility_name: '1号篮球场', amount: 160, create_time: new Date() },
+                        { id: 2, user_name: '李四', facility_name: '羽毛球场A', amount: 120, create_time: new Date(Date.now() - 300000) },
+                        { id: 3, user_name: '王五', facility_name: '游泳池', amount: 80, create_time: new Date(Date.now() - 600000) },
+                        { id: 4, user_name: '赵六', facility_name: '乒乓球室', amount: 60, create_time: new Date(Date.now() - 900000) }
+                    ]
+                }
+            },
+            mounted() {
+                this.checkAuth();
+                this.loadAdminInfo();
+                this.initCharts();
+                this.startRealtimeUpdate();
+            },
+            methods: {
+                // 检查登录状态
+                checkAuth() {
+                    if (!Auth.requireAdmin()) {
+                        return;
+                    }
+                },
+                
+                // 加载管理员信息
+                loadAdminInfo() {
+                    this.adminInfo = Auth.getUserInfo() || {};
+                },
+                
+                // 初始化图表
+                initCharts() {
+                    this.initBookingTrendChart();
+                    this.initFacilityUsageChart();
+                    this.initRevenueChart();
+                    this.initUserActivityChart();
+                },
+                
+                // 初始化预约趋势图
+                initBookingTrendChart() {
+                    const chart = echarts.init(document.getElementById('bookingTrendChart'));
+                    const option = {
+                        tooltip: {
+                            trigger: 'axis'
+                        },
+                        legend: {
+                            data: ['预约数量', '完成数量']
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: ['1月', '2月', '3月', '4月', '5月', '6月']
+                        },
+                        yAxis: {
+                            type: 'value'
+                        },
+                        series: [
+                            {
+                                name: '预约数量',
+                                type: 'line',
+                                data: [120, 132, 101, 134, 90, 230],
+                                smooth: true,
+                                itemStyle: { color: '#3498db' }
+                            },
+                            {
+                                name: '完成数量',
+                                type: 'line',
+                                data: [110, 125, 95, 128, 85, 220],
+                                smooth: true,
+                                itemStyle: { color: '#2ecc71' }
+                            }
+                        ]
+                    };
+                    chart.setOption(option);
+                },
+                
+                // 初始化场馆使用率图
+                initFacilityUsageChart() {
+                    const chart = echarts.init(document.getElementById('facilityUsageChart'));
+                    const option = {
+                        tooltip: {
+                            trigger: 'item'
+                        },
+                        legend: {
+                            orient: 'vertical',
+                            left: 'left'
+                        },
+                        series: [
+                            {
+                                name: '使用率',
+                                type: 'pie',
+                                radius: '50%',
+                                data: [
+                                    { value: 35, name: '篮球场' },
+                                    { value: 25, name: '羽毛球场' },
+                                    { value: 20, name: '游泳池' },
+                                    { value: 15, name: '乒乓球室' },
+                                    { value: 5, name: '其他' }
+                                ],
+                                emphasis: {
+                                    itemStyle: {
+                                        shadowBlur: 10,
+                                        shadowOffsetX: 0,
+                                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                    }
+                                }
+                            }
+                        ]
+                    };
+                    chart.setOption(option);
+                },
+                
+                // 初始化收入分析图
+                initRevenueChart() {
+                    const chart = echarts.init(document.getElementById('revenueChart'));
+                    const option = {
+                        tooltip: {
+                            trigger: 'axis'
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+                        },
+                        yAxis: {
+                            type: 'value'
+                        },
+                        series: [
+                            {
+                                name: '收入',
+                                type: 'bar',
+                                data: [2340, 1890, 2450, 2100, 3200, 4500, 3800],
+                                itemStyle: { color: '#f39c12' }
+                            }
+                        ]
+                    };
+                    chart.setOption(option);
+                },
+                
+                // 初始化用户活跃度图
+                initUserActivityChart() {
+                    const chart = echarts.init(document.getElementById('userActivityChart'));
+                    const option = {
+                        tooltip: {
+                            trigger: 'axis'
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00']
+                        },
+                        yAxis: {
+                            type: 'value'
+                        },
+                        series: [
+                            {
+                                name: '活跃用户',
+                                type: 'area',
+                                data: [10, 5, 25, 45, 60, 35],
+                                smooth: true,
+                                itemStyle: { color: '#9b59b6' },
+                                areaStyle: { opacity: 0.3 }
+                            }
+                        ]
+                    };
+                    chart.setOption(option);
+                },
+                
+                // 开始实时更新
+                startRealtimeUpdate() {
+                    setInterval(() => {
+                        // 模拟新的预约数据
+                        if (Math.random() < 0.3) {
+                            const newBooking = {
+                                id: Date.now(),
+                                user_name: ['张三', '李四', '王五', '赵六', '钱七'][Math.floor(Math.random() * 5)],
+                                facility_name: ['篮球场', '羽毛球场', '游泳池', '乒乓球室'][Math.floor(Math.random() * 4)],
+                                amount: [60, 80, 120, 160][Math.floor(Math.random() * 4)],
+                                create_time: new Date()
+                            };
+                            this.realtimeBookings.unshift(newBooking);
+                            if (this.realtimeBookings.length > 5) {
+                                this.realtimeBookings.pop();
+                            }
+                        }
+                    }, 10000);
+                },
+                
+                // 格式化时间
+                formatTime(timestamp) {
+                    return dayjs(timestamp).format('HH:mm:ss');
+                },
+                
+                // 页面跳转
+                goToPage(page) {
+                    this.activeMenu = page;
+                    const pageMap = {
+                        dashboard: 'dashboard.html',
+                        facilities: 'facilities.html',
+                        bookings: 'bookings.html',
+                        reports: 'reports.html',
+                        users: 'users.html'
+                    };
+                    if (pageMap[page] && page !== 'dashboard') {
+                        window.location.href = pageMap[page];
+                    }
+                },
+                
+                // 发送通知
+                sendNotification() {
+                    this.$message.info('通知功能开发中');
+                },
+                
+                // 导出数据
+                exportData() {
+                    this.$message.info('数据导出功能开发中');
+                },
+                
+                // 处理用户下拉菜单命令
+                handleUserCommand(command) {
+                    switch (command) {
+                        case 'profile':
+                            this.$message.info('个人资料功能开发中');
+                            break;
+                        case 'settings':
+                            this.$message.info('系统设置功能开发中');
+                            break;
+                        case 'logout':
+                            this.handleLogout();
+                            break;
+                    }
+                },
+                
+                // 处理退出登录
+                handleLogout() {
+                    this.$confirm('确定要退出登录吗？', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        Auth.logout();
+                        this.$message.success('已退出登录');
+                        window.location.href = '../../index.html';
+                    }).catch(() => {});
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+

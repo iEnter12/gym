@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人中心 - 体育场馆预约系统</title>
+    <link rel="stylesheet" href="../../assets/css/common.css">
+    <link rel="stylesheet" href="../../assets/css/user.css">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/dayjs@1.11.10/dayjs.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- 顶部导航 -->
+        <div class="header">
+            <div class="header-container">
+                <div class="logo">
+                    <i class="el-icon-trophy"></i>
+                    <span>体育场馆预约系统</span>
+                </div>
+                
+                <div class="nav-menu">
+                    <div class="nav-item" @click="goToPage('home')">
+                        <i class="el-icon-house"></i>
+                        首页
+                    </div>
+                    <div class="nav-item" @click="goToPage('facilities')">
+                        <i class="el-icon-office-building"></i>
+                        场馆列表
+                    </div>
+                    <div class="nav-item active">
+                        <i class="el-icon-user"></i>
+                        个人中心
+                    </div>
+                    <div class="nav-item" @click="goToPage('ai')">
+                        <i class="el-icon-chat-dot-round"></i>
+                        AI助手
+                    </div>
+                </div>
+                
+                <div class="user-info">
+                    <el-dropdown @command="handleUserCommand">
+                        <span class="user-dropdown">
+                            <el-avatar :src="userInfo.avatar" :size="32">
+                                {{ userInfo.real_name ? userInfo.real_name.charAt(0) : 'U' }}
+                            </el-avatar>
+                            <span class="username">{{ userInfo.real_name || userInfo.username }}</span>
+                            <i class="el-icon-arrow-down"></i>
+                        </span>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item command="profile">个人资料</el-dropdown-item>
+                            <el-dropdown-item command="settings">设置</el-dropdown-item>
+                            <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <div class="main-content">
+            <div class="profile-page">
+                <!-- 用户信息卡片 -->
+                <div class="user-profile-section">
+                    <div class="container">
+                        <div class="user-profile-card">
+                            <div class="profile-header">
+                                <div class="avatar-section">
+                                    <el-avatar :src="userInfo.avatar" :size="80">
+                                        {{ userInfo.real_name ? userInfo.real_name.charAt(0) : 'U' }}
+                                    </el-avatar>
+                                    <el-button type="text" @click="showAvatarUpload = true">
+                                        <i class="el-icon-camera"></i>
+                                        更换头像
+                                    </el-button>
+                                </div>
+                                <div class="profile-info">
+                                    <h2>{{ userInfo.real_name || userInfo.username }}</h2>
+                                    <p class="user-type">普通用户</p>
+                                    <p class="join-date">加入时间：{{ formatDate(userInfo.create_time) }}</p>
+                                </div>
+                                <div class="profile-stats">
+                                    <div class="stat-item">
+                                        <div class="stat-number">{{ userStats.total_bookings }}</div>
+                                        <div class="stat-label">总预约</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-number">{{ userStats.completed_bookings }}</div>
+                                        <div class="stat-label">已完成</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-number">¥{{ userStats.total_spent }}</div>
+                                        <div class="stat-label">总消费</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 会员状态 -->
+                <div class="membership-section" v-if="userMembership">
+                    <div class="container">
+                        <div class="membership-card">
+                            <div class="membership-header">
+                                <h3>
+                                    <i class="el-icon-medal"></i>
+                                    会员状态
+                                </h3>
+                                <el-tag type="success" size="large">{{ userMembership.package_name }}</el-tag>
+                            </div>
+                            <div class="membership-content">
+                                <div class="membership-info">
+                                    <div class="info-item">
+                                        <span class="label">有效期至：</span>
+                                        <span class="value">{{ formatDate(userMembership.expire_time) }}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="label">剩余免费次数：</span>
+                                        <span class="value">{{ userMembership.remaining_free_times }}次</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="label">会员折扣：</span>
+                                        <span class="value">{{ userMembership.discount * 10 }}折</span>
+                                    </div>
+                                </div>
+                                <div class="membership-actions">
+                                    <el-button type="primary" @click="showMembershipPackages">
+                                        续费会员
+                                    </el-button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 功能导航 -->
+                <div class="function-nav-section">
+                    <div class="container">
+                        <div class="function-nav">
+                            <div
+                                v-for="tab in tabs"
+                                :key="tab.key"
+                                class="nav-tab"
+                                :class="{ active: activeTab === tab.key }"
+                                @click="activeTab = tab.key">
+                                <i :class="tab.icon"></i>
+                                <span>{{ tab.label }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 内容区域 -->
+                <div class="content-section">
+                    <div class="container">
+                        <!-- 预约记录 -->
+                        <div v-if="activeTab === 'bookings'" class="bookings-content">
+                            <div class="section-header">
+                                <h3>我的预约</h3>
+                                <el-radio-group v-model="bookingFilter" size="small">
+                                    <el-radio-button label="all">全部</el-radio-button>
+                                    <el-radio-button label="pending">待确认</el-radio-button>
+                                    <el-radio-button label="confirmed">已确认</el-radio-button>
+                                    <el-radio-button label="completed">已完成</el-radio-button>
+                                    <el-radio-button label="cancelled">已取消</el-radio-button>
+                                </el-radio-group>
+                            </div>
+                            
+                            <div class="bookings-list">
+                                <div
+                                    v-for="booking in filteredBookings"
+                                    :key="booking.booking_id"
+                                    class="booking-item">
+                                    <div class="booking-image">
+                                        <img :src="booking.facility_image" :alt="booking.facility_name">
+                                    </div>
+                                    <div class="booking-info">
+                                        <h4>{{ booking.facility_name }}</h4>
+                                        <p class="booking-time">
+                                            <i class="el-icon-time"></i>
+                                            {{ booking.booking_date }} {{ booking.start_time }}-{{ booking.end_time }}
+                                        </p>
+                                        <p class="booking-location">
+                                            <i class="el-icon-location"></i>
+                                            {{ booking.facility_location }}
+                                        </p>
+                                        <p class="booking-people">
+                                            <i class="el-icon-user"></i>
+                                            {{ booking.person_count }}人
+                                        </p>
+                                    </div>
+                                    <div class="booking-status">
+                                        <el-tag :type="getBookingStatusType(booking.status)">
+                                            {{ getBookingStatusText(booking.status) }}
+                                        </el-tag>
+                                        <div class="booking-price">¥{{ booking.actual_amount }}</div>
+                                    </div>
+                                    <div class="booking-actions">
+                                        <el-button
+                                            v-if="booking.status === 0"
+                                            type="danger"
+                                            size="small"
+                                            @click="cancelBooking(booking.booking_id)">
+                                            取消预约
+                                        </el-button>
+                                        <el-button
+                                            v-if="booking.status === 2 && !booking.reviewed"
+                                            type="primary"
+                                            size="small"
+                                            @click="showReviewDialog(booking)">
+                                            评价
+                                        </el-button>
+                                        <el-button
+                                            type="text"
+                                            size="small"
+                                            @click="viewBookingDetail(booking.booking_id)">
+                                            查看详情
+                                        </el-button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 订单历史 -->
+                        <div v-if="activeTab === 'orders'" class="orders-content">
+                            <div class="section-header">
+                                <h3>订单历史</h3>
+                                <el-date-picker
+                                    v-model="orderDateRange"
+                                    type="daterange"
+                                    range-separator="至"
+                                    start-placeholder="开始日期"
+                                    end-placeholder="结束日期"
+                                    size="small">
+                                </el-date-picker>
+                            </div>
+                            
+                            <div class="orders-list">
+                                <div
+                                    v-for="order in filteredOrders"
+                                    :key="order.order_id"
+                                    class="order-item">
+                                    <div class="order-header">
+                                        <div class="order-info">
+                                            <span class="order-no">订单号：{{ order.order_no }}</span>
+                                            <span class="order-date">{{ formatDate(order.create_time) }}</span>
+                                        </div>
+                                        <el-tag :type="getOrderStatusType(order.payment_status)">
+                                            {{ getOrderStatusText(order.payment_status) }}
+                                        </el-tag>
+                                    </div>
+                                    <div class="order-content">
+                                        <div class="order-type">
+                                            {{ getOrderTypeText(order.order_type) }}
+                                        </div>
+                                        <div class="order-amount">¥{{ order.total_amount }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 个人信息 -->
+                        <div v-if="activeTab === 'profile'" class="profile-content">
+                            <div class="section-header">
+                                <h3>个人信息</h3>
+                                <el-button type="primary" @click="editMode = !editMode">
+                                    {{ editMode ? '取消编辑' : '编辑信息' }}
+                                </el-button>
+                            </div>
+                            
+                            <el-form :model="profileForm" :rules="profileRules" ref="profileForm" label-width="100px">
+                                <el-form-item label="真实姓名" prop="real_name">
+                                    <el-input
+                                        v-model="profileForm.real_name"
+                                        :disabled="!editMode"
+                                        placeholder="请输入真实姓名">
+                                    </el-input>
+                                </el-form-item>
+                                
+                                <el-form-item label="手机号码" prop="phone">
+                                    <el-input
+                                        v-model="profileForm.phone"
+                                        :disabled="!editMode"
+                                        placeholder="请输入手机号码">
+                                    </el-input>
+                                </el-form-item>
+                                
+                                <el-form-item label="邮箱地址" prop="email">
+                                    <el-input
+                                        v-model="profileForm.email"
+                                        :disabled="!editMode"
+                                        placeholder="请输入邮箱地址">
+                                    </el-input>
+                                </el-form-item>
+                                
+                                <el-form-item v-if="editMode">
+                                    <el-button type="primary" @click="saveProfile">保存修改</el-button>
+                                    <el-button @click="resetProfile">重置</el-button>
+                                </el-form-item>
+                            </el-form>
+                        </div>
+
+                        <!-- 设置 -->
+                        <div v-if="activeTab === 'settings'" class="settings-content">
+                            <div class="section-header">
+                                <h3>账户设置</h3>
+                            </div>
+                            
+                            <div class="settings-list">
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <h4>修改密码</h4>
+                                        <p>定期修改密码，保护账户安全</p>
+                                    </div>
+                                    <el-button type="primary" @click="showPasswordDialog = true">
+                                        修改密码
+                                    </el-button>
+                                </div>
+                                
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <h4>消息通知</h4>
+                                        <p>接收预约提醒和系统通知</p>
+                                    </div>
+                                    <el-switch v-model="settings.notifications"></el-switch>
+                                </div>
+                                
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <h4>邮件通知</h4>
+                                        <p>通过邮件接收重要通知</p>
+                                    </div>
+                                    <el-switch v-model="settings.emailNotifications"></el-switch>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 评价对话框 -->
+        <el-dialog
+            title="评价场馆"
+            :visible.sync="reviewDialogVisible"
+            width="500px">
+            <el-form :model="reviewForm" label-width="80px">
+                <el-form-item label="评分">
+                    <el-rate v-model="reviewForm.rating" show-text></el-rate>
+                </el-form-item>
+                <el-form-item label="评价内容">
+                    <el-input
+                        v-model="reviewForm.content"
+                        type="textarea"
+                        :rows="4"
+                        placeholder="请输入您的评价"
+                        maxlength="200"
+                        show-word-limit>
+                    </el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer">
+                <el-button @click="reviewDialogVisible = false">取消</el-button>
+                <el-button type="primary" @click="submitReview">提交评价</el-button>
+            </div>
+        </el-dialog>
+
+        <!-- 修改密码对话框 -->
+        <el-dialog
+            title="修改密码"
+            :visible.sync="showPasswordDialog"
+            width="400px">
+            <el-form :model="passwordForm" :rules="passwordRules" ref="passwordForm" label-width="100px">
+                <el-form-item label="当前密码" prop="oldPassword">
+                    <el-input
+                        v-model="passwordForm.oldPassword"
+                        type="password"
+                        placeholder="请输入当前密码">
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="新密码" prop="newPassword">
+                    <el-input
+                        v-model="passwordForm.newPassword"
+                        type="password"
+                        placeholder="请输入新密码">
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="确认密码" prop="confirmPassword">
+                    <el-input
+                        v-model="passwordForm.confirmPassword"
+                        type="password"
+                        placeholder="请再次输入新密码">
+                    </el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer">
+                <el-button @click="showPasswordDialog = false">取消</el-button>
+                <el-button type="primary" @click="changePassword">确认修改</el-button>
+            </div>
+        </el-dialog>
+    </div>
+
+    <script src="../../utils/api.js"></script>
+    <script src="../../utils/auth.js"></script>
+    <script src="../../utils/mock.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    userInfo: {},
+                    userMembership: null,
+                    userStats: {},
+                    activeTab: 'bookings',
+                    bookingFilter: 'all',
+                    orderDateRange: [],
+                    editMode: false,
+                    showAvatarUpload: false,
+                    reviewDialogVisible: false,
+                    showPasswordDialog: false,
+                    currentReviewBooking: null,
+                    bookings: [],
+                    orders: [],
+                    settings: {
+                        notifications: true,
+                        emailNotifications: false
+                    },
+                    tabs: [
+                        { key: 'bookings', label: '预约记录', icon: 'el-icon-tickets' },
+                        { key: 'orders', label: '订单历史', icon: 'el-icon-document' },
+                        { key: 'profile', label: '个人信息', icon: 'el-icon-user' },
+                        { key: 'settings', label: '设置', icon: 'el-icon-setting' }
+                    ],
+                    profileForm: {
+                        real_name: '',
+                        phone: '',
+                        email: ''
+                    },
+                    profileRules: {
+                        real_name: [
+                            { required: true, message: '请输入真实姓名', trigger: 'blur' }
+                        ],
+                        phone: [
+                            { required: true, message: '请输入手机号码', trigger: 'blur' },
+                            { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
+                        ],
+                        email: [
+                            { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
+                        ]
+                    },
+                    reviewForm: {
+                        rating: 5,
+                        content: ''
+                    },
+                    passwordForm: {
+                        oldPassword: '',
+                        newPassword: '',
+                        confirmPassword: ''
+                    },
+                    passwordRules: {
+                        oldPassword: [
+                            { required: true, message: '请输入当前密码', trigger: 'blur' }
+                        ],
+                        newPassword: [
+                            { required: true, message: '请输入新密码', trigger: 'blur' },
+                            { min: 6, message: '密码长度不能少于6位', trigger: 'blur' }
+                        ],
+                        confirmPassword: [
+                            { required: true, message: '请再次输入新密码', trigger: 'blur' },
+                            { validator: this.validateConfirmPassword, trigger: 'blur' }
+                        ]
+                    }
+                }
+            },
+            computed: {
+                filteredBookings() {
+                    if (this.bookingFilter === 'all') {
+                        return this.bookings;
+                    }
+                    const statusMap = {
+                        pending: 0,
+                        confirmed: 1,
+                        completed: 2,
+                        cancelled: 3
+                    };
+                    return this.bookings.filter(booking => booking.status === statusMap[this.bookingFilter]);
+                },
+                
+                filteredOrders() {
+                    let filtered = [...this.orders];
+                    
+                    if (this.orderDateRange && this.orderDateRange.length === 2) {
+                        const [startDate, endDate] = this.orderDateRange;
+                        filtered = filtered.filter(order => {
+                            const orderDate = new Date(order.create_time);
+                            return orderDate >= startDate && orderDate <= endDate;
+                        });
+                    }
+                    
+                    return filtered;
+                }
+            },
+            mounted() {
+                this.checkAuth();
+                this.loadUserInfo();
+                this.loadUserData();
+            },
+            methods: {
+                // 检查登录状态
+                checkAuth() {
+                    if (!Auth.requireUser()) {
+                        return;
+                    }
+                },
+                
+                // 加载用户信息
+                loadUserInfo() {
+                    this.userInfo = Auth.getUserInfo() || {};
+                    this.profileForm = {
+                        real_name: this.userInfo.real_name || '',
+                        phone: this.userInfo.phone || '',
+                        email: this.userInfo.email || ''
+                    };
+                },
+                
+                // 加载用户数据
+                loadUserData() {
+                    this.loadUserMembership();
+                    this.loadUserStats();
+                    this.loadBookings();
+                    this.loadOrders();
+                },
+                
+                // 加载用户会员信息
+                loadUserMembership() {
+                    this.userMembership = MockData.getUserMembership(this.userInfo.account_id);
+                },
+                
+                // 加载用户统计
+                loadUserStats() {
+                    this.userStats = MockData.getUserStats(this.userInfo.account_id);
+                },
+                
+                // 加载预约记录
+                loadBookings() {
+                    this.bookings = MockData.getUserBookings(this.userInfo.account_id);
+                },
+                
+                // 加载订单历史
+                loadOrders() {
+                    this.orders = MockData.getUserOrders(this.userInfo.account_id);
+                },
+                
+                // 获取预约状态类型
+                getBookingStatusType(status) {
+                    const typeMap = {
+                        0: 'warning',
+                        1: 'primary',
+                        2: 'success',
+                        3: 'danger'
+                    };
+                    return typeMap[status] || 'info';
+                },
+                
+                // 获取预约状态文本
+                getBookingStatusText(status) {
+                    const textMap = {
+                        0: '待确认',
+                        1: '已确认',
+                        2: '已完成',
+                        3: '已取消'
+                    };
+                    return textMap[status] || '未知';
+                },
+                
+                // 获取订单状态类型
+                getOrderStatusType(status) {
+                    const typeMap = {
+                        1: 'warning',
+                        2: 'success',
+                        3: 'info'
+                    };
+                    return typeMap[status] || 'info';
+                },
+                
+                // 获取订单状态文本
+                getOrderStatusText(status) {
+                    const textMap = {
+                        1: '待支付',
+                        2: '已支付',
+                        3: '已退款'
+                    };
+                    return textMap[status] || '未知';
+                },
+                
+                // 获取订单类型文本
+                getOrderTypeText(type) {
+                    const textMap = {
+                        1: '场馆预约',
+                        2: '会员购买'
+                    };
+                    return textMap[type] || '未知';
+                },
+                
+                // 取消预约
+                cancelBooking(bookingId) {
+                    this.$confirm('确定要取消这个预约吗？', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        // 模拟API调用
+                        this.$message.success('预约已取消');
+                        this.loadBookings();
+                    }).catch(() => {});
+                },
+                
+                // 显示评价对话框
+                showReviewDialog(booking) {
+                    this.currentReviewBooking = booking;
+                    this.reviewForm = {
+                        rating: 5,
+                        content: ''
+                    };
+                    this.reviewDialogVisible = true;
+                },
+                
+                // 提交评价
+                submitReview() {
+                    if (!this.reviewForm.content.trim()) {
+                        this.$message.error('请输入评价内容');
+                        return;
+                    }
+                    
+                    // 模拟API调用
+                    this.$message.success('评价提交成功');
+                    this.reviewDialogVisible = false;
+                    this.loadBookings();
+                },
+                
+                // 查看预约详情
+                viewBookingDetail(bookingId) {
+                    this.$message.info('预约详情功能开发中');
+                },
+                
+                // 显示会员套餐
+                showMembershipPackages() {
+                    this.$message.info('会员套餐功能开发中');
+                },
+                
+                // 保存个人信息
+                saveProfile() {
+                    this.$refs.profileForm.validate((valid) => {
+                        if (!valid) return false;
+                        
+                        // 模拟API调用
+                        this.$message.success('个人信息保存成功');
+                        this.editMode = false;
+                        
+                        // 更新本地用户信息
+                        Object.assign(this.userInfo, this.profileForm);
+                        Auth.setUserInfo(this.userInfo);
+                    });
+                },
+                
+                // 重置个人信息
+                resetProfile() {
+                    this.profileForm = {
+                        real_name: this.userInfo.real_name || '',
+                        phone: this.userInfo.phone || '',
+                        email: this.userInfo.email || ''
+                    };
+                },
+                
+                // 验证确认密码
+                validateConfirmPassword(rule, value, callback) {
+                    if (value !== this.passwordForm.newPassword) {
+                        callback(new Error('两次输入的密码不一致'));
+                    } else {
+                        callback();
+                    }
+                },
+                
+                // 修改密码
+                changePassword() {
+                    this.$refs.passwordForm.validate((valid) => {
+                        if (!valid) return false;
+                        
+                        // 模拟API调用
+                        this.$message.success('密码修改成功');
+                        this.showPasswordDialog = false;
+                        this.passwordForm = {
+                            oldPassword: '',
+                            newPassword: '',
+                            confirmPassword: ''
+                        };
+                    });
+                },
+                
+                // 格式化日期
+                formatDate(dateString) {
+                    return dayjs(dateString).format('YYYY-MM-DD');
+                },
+                
+                // 页面跳转
+                goToPage(page) {
+                    const pageMap = {
+                        home: 'home.html',
+                        facilities: 'facilities.html',
+                        ai: 'ai-chat.html'
+                    };
+                    if (pageMap[page]) {
+                        window.location.href = pageMap[page];
+                    }
+                },
+                
+                // 处理用户下拉菜单命令
+                handleUserCommand(command) {
+                    switch (command) {
+                        case 'profile':
+                            this.activeTab = 'profile';
+                            break;
+                        case 'settings':
+                            this.activeTab = 'settings';
+                            break;
+                        case 'logout':
+                            this.handleLogout();
+                            break;
+                    }
+                },
+                
+                // 处理退出登录
+                handleLogout() {
+                    this.$confirm('确定要退出登录吗？', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        Auth.logout();
+                        this.$message.success('已退出登录');
+                        window.location.href = '../../index.html';
+                    }).catch(() => {});
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+

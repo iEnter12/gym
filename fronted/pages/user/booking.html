@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>场馆预约 - 体育场馆预约系统</title>
+    <link rel="stylesheet" href="../../assets/css/common.css">
+    <link rel="stylesheet" href="../../assets/css/user.css">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/dayjs@1.11.10/dayjs.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- 顶部导航 -->
+        <div class="header">
+            <div class="header-container">
+                <div class="logo">
+                    <i class="el-icon-trophy"></i>
+                    <span>体育场馆预约系统</span>
+                </div>
+                
+                <div class="nav-menu">
+                    <div class="nav-item" @click="goToPage('home')">
+                        <i class="el-icon-house"></i>
+                        首页
+                    </div>
+                    <div class="nav-item" @click="goToPage('facilities')">
+                        <i class="el-icon-office-building"></i>
+                        场馆列表
+                    </div>
+                    <div class="nav-item" @click="goToPage('profile')">
+                        <i class="el-icon-user"></i>
+                        个人中心
+                    </div>
+                    <div class="nav-item" @click="goToPage('ai')">
+                        <i class="el-icon-chat-dot-round"></i>
+                        AI助手
+                    </div>
+                </div>
+                
+                <div class="user-info">
+                    <el-dropdown @command="handleUserCommand">
+                        <span class="user-dropdown">
+                            <el-avatar :src="userInfo.avatar" :size="32">
+                                {{ userInfo.real_name ? userInfo.real_name.charAt(0) : 'U' }}
+                            </el-avatar>
+                            <span class="username">{{ userInfo.real_name || userInfo.username }}</span>
+                            <i class="el-icon-arrow-down"></i>
+                        </span>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item command="profile">个人资料</el-dropdown-item>
+                            <el-dropdown-item command="settings">设置</el-dropdown-item>
+                            <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <div class="main-content">
+            <div class="booking-page">
+                <!-- 页面标题和面包屑 -->
+                <div class="page-header">
+                    <div class="container">
+                        <div class="breadcrumb">
+                            <el-breadcrumb separator="/">
+                                <el-breadcrumb-item @click.native="goToPage('home')">首页</el-breadcrumb-item>
+                                <el-breadcrumb-item @click.native="goToPage('facilities')">场馆列表</el-breadcrumb-item>
+                                <el-breadcrumb-item>{{ facilityInfo.facility_name }}</el-breadcrumb-item>
+                            </el-breadcrumb>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 场馆详情区域 -->
+                <div class="facility-detail-section">
+                    <div class="container">
+                        <div class="facility-detail-container">
+                            <!-- 场馆图片 -->
+                            <div class="facility-images">
+                                <div class="main-image">
+                                    <img :src="facilityInfo.image_url" :alt="facilityInfo.facility_name">
+                                    <div class="facility-status" :class="getStatusClass(facilityInfo.status)">
+                                        {{ getStatusText(facilityInfo.status) }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 场馆信息 -->
+                            <div class="facility-info">
+                                <div class="facility-header">
+                                    <h1>{{ facilityInfo.facility_name }}</h1>
+                                    <div class="facility-type-tag">{{ getFacilityTypeName(facilityInfo.type_id) }}</div>
+                                </div>
+                                
+                                <div class="facility-location">
+                                    <i class="el-icon-location"></i>
+                                    <span>{{ facilityInfo.location }}</span>
+                                </div>
+
+                                <div class="facility-description">
+                                    <p>{{ facilityInfo.description }}</p>
+                                </div>
+
+                                <div class="facility-specs">
+                                    <div class="spec-item">
+                                        <i class="el-icon-user"></i>
+                                        <span class="spec-label">容量：</span>
+                                        <span class="spec-value">{{ facilityInfo.capacity }}人</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <i class="el-icon-crop"></i>
+                                        <span class="spec-label">面积：</span>
+                                        <span class="spec-value">{{ facilityInfo.area }}㎡</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <i class="el-icon-money"></i>
+                                        <span class="spec-label">价格：</span>
+                                        <span class="spec-value price">¥{{ facilityInfo.price }}/小时</span>
+                                    </div>
+                                </div>
+
+                                <!-- 营业时间 -->
+                                <div class="operating-hours">
+                                    <h3>营业时间</h3>
+                                    <p>每日 6:00 - 22:00</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 预约表单区域 -->
+                <div class="booking-form-section">
+                    <div class="container">
+                        <div class="booking-container">
+                            <!-- 预约表单 -->
+                            <div class="booking-form">
+                                <h2>预约信息</h2>
+                                
+                                <el-form :model="bookingForm" :rules="bookingRules" ref="bookingForm" label-width="100px">
+                                    <el-form-item label="预约日期" prop="booking_date">
+                                        <el-date-picker
+                                            v-model="bookingForm.booking_date"
+                                            type="date"
+                                            placeholder="选择预约日期"
+                                            :picker-options="datePickerOptions"
+                                            format="yyyy-MM-dd"
+                                            value-format="yyyy-MM-dd"
+                                            style="width: 100%;">
+                                        </el-date-picker>
+                                    </el-form-item>
+
+                                    <el-form-item label="预约时间" prop="time_slot">
+                                        <div class="time-slots">
+                                            <div
+                                                v-for="slot in availableTimeSlots"
+                                                :key="slot.id"
+                                                class="time-slot"
+                                                :class="{ 
+                                                    'selected': selectedTimeSlot === slot.id,
+                                                    'disabled': slot.disabled 
+                                                }"
+                                                @click="selectTimeSlot(slot)">
+                                                <div class="time-range">{{ slot.start_time }} - {{ slot.end_time }}</div>
+                                                <div class="time-price">¥{{ slot.price }}</div>
+                                                <div v-if="slot.disabled" class="time-status">已预约</div>
+                                            </div>
+                                        </div>
+                                    </el-form-item>
+
+                                    <el-form-item label="预约人数" prop="person_count">
+                                        <el-input-number
+                                            v-model="bookingForm.person_count"
+                                            :min="1"
+                                            :max="facilityInfo.capacity"
+                                            style="width: 200px;">
+                                        </el-input-number>
+                                        <span class="capacity-hint">（最多{{ facilityInfo.capacity }}人）</span>
+                                    </el-form-item>
+
+                                    <el-form-item label="联系电话" prop="contact_phone">
+                                        <el-input
+                                            v-model="bookingForm.contact_phone"
+                                            placeholder="请输入联系电话"
+                                            style="width: 300px;">
+                                        </el-input>
+                                    </el-form-item>
+
+                                    <el-form-item label="备注信息">
+                                        <el-input
+                                            v-model="bookingForm.remark"
+                                            type="textarea"
+                                            :rows="3"
+                                            placeholder="请输入备注信息（可选）"
+                                            maxlength="200"
+                                            show-word-limit>
+                                        </el-input>
+                                    </el-form-item>
+
+                                    <!-- 会员优惠 -->
+                                    <el-form-item v-if="userMembership" label="会员优惠">
+                                        <el-checkbox v-model="bookingForm.is_member_used">
+                                            使用会员优惠（{{ userMembership.discount * 10 }}折）
+                                        </el-checkbox>
+                                    </el-form-item>
+                                </el-form>
+                            </div>
+
+                            <!-- 预约摘要 -->
+                            <div class="booking-summary">
+                                <h3>预约摘要</h3>
+                                
+                                <div class="summary-item">
+                                    <span class="label">场馆：</span>
+                                    <span class="value">{{ facilityInfo.facility_name }}</span>
+                                </div>
+                                
+                                <div class="summary-item" v-if="bookingForm.booking_date">
+                                    <span class="label">日期：</span>
+                                    <span class="value">{{ bookingForm.booking_date }}</span>
+                                </div>
+                                
+                                <div class="summary-item" v-if="selectedTimeSlotInfo">
+                                    <span class="label">时间：</span>
+                                    <span class="value">{{ selectedTimeSlotInfo.start_time }} - {{ selectedTimeSlotInfo.end_time }}</span>
+                                </div>
+                                
+                                <div class="summary-item" v-if="bookingForm.person_count">
+                                    <span class="label">人数：</span>
+                                    <span class="value">{{ bookingForm.person_count }}人</span>
+                                </div>
+
+                                <div class="price-breakdown">
+                                    <div class="price-item">
+                                        <span class="label">原价：</span>
+                                        <span class="value">¥{{ originalPrice }}</span>
+                                    </div>
+                                    
+                                    <div class="price-item" v-if="memberDiscount > 0">
+                                        <span class="label">会员优惠：</span>
+                                        <span class="value discount">-¥{{ memberDiscount }}</span>
+                                    </div>
+                                    
+                                    <div class="price-item total">
+                                        <span class="label">总计：</span>
+                                        <span class="value">¥{{ finalPrice }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="booking-actions">
+                                    <el-button type="primary" size="large" @click="submitBooking" :loading="submitting">
+                                        确认预约
+                                    </el-button>
+                                    <el-button size="large" @click="goToPage('facilities')">
+                                        返回列表
+                                    </el-button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 用户评价区域 -->
+                <div class="reviews-section">
+                    <div class="container">
+                        <h2>用户评价</h2>
+                        
+                        <div class="reviews-stats">
+                            <div class="rating-overview">
+                                <div class="average-rating">
+                                    <span class="rating-score">{{ averageRating }}</span>
+                                    <el-rate
+                                        v-model="averageRating"
+                                        disabled
+                                        show-score
+                                        text-color="#ff9900">
+                                    </el-rate>
+                                </div>
+                                <div class="rating-count">基于 {{ reviews.length }} 条评价</div>
+                            </div>
+                        </div>
+
+                        <div class="reviews-list">
+                            <div
+                                v-for="review in displayedReviews"
+                                :key="review.review_id"
+                                class="review-item">
+                                <div class="review-header">
+                                    <div class="reviewer-info">
+                                        <el-avatar :size="40">{{ review.reviewer_name.charAt(0) }}</el-avatar>
+                                        <div class="reviewer-details">
+                                            <div class="reviewer-name">{{ review.reviewer_name }}</div>
+                                            <div class="review-date">{{ formatDate(review.create_time) }}</div>
+                                        </div>
+                                    </div>
+                                    <el-rate v-model="review.rating" disabled></el-rate>
+                                </div>
+                                <div class="review-content">
+                                    <p>{{ review.content }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="reviews-pagination" v-if="reviews.length > 5">
+                            <el-button @click="loadMoreReviews" :loading="loadingReviews">
+                                查看更多评价
+                            </el-button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../utils/api.js"></script>
+    <script src="../../utils/auth.js"></script>
+    <script src="../../utils/mock.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    userInfo: {},
+                    facilityInfo: {},
+                    userMembership: null,
+                    selectedTimeSlot: null,
+                    submitting: false,
+                    loadingReviews: false,
+                    reviews: [],
+                    displayedReviews: [],
+                    reviewsPage: 1,
+                    bookingForm: {
+                        facility_id: null,
+                        booking_date: '',
+                        start_time: '',
+                        end_time: '',
+                        person_count: 1,
+                        contact_phone: '',
+                        remark: '',
+                        is_member_used: false
+                    },
+                    bookingRules: {
+                        booking_date: [
+                            { required: true, message: '请选择预约日期', trigger: 'change' }
+                        ],
+                        time_slot: [
+                            { required: true, message: '请选择预约时间', trigger: 'change' }
+                        ],
+                        person_count: [
+                            { required: true, message: '请输入预约人数', trigger: 'blur' }
+                        ],
+                        contact_phone: [
+                            { required: true, message: '请输入联系电话', trigger: 'blur' },
+                            { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
+                        ]
+                    },
+                    datePickerOptions: {
+                        disabledDate(time) {
+                            return time.getTime() < Date.now() - 8.64e7; // 不能选择今天之前的日期
+                        }
+                    },
+                    availableTimeSlots: []
+                }
+            },
+            computed: {
+                selectedTimeSlotInfo() {
+                    return this.availableTimeSlots.find(slot => slot.id === this.selectedTimeSlot);
+                },
+                
+                originalPrice() {
+                    if (!this.selectedTimeSlotInfo) return 0;
+                    return this.selectedTimeSlotInfo.price;
+                },
+                
+                memberDiscount() {
+                    if (!this.bookingForm.is_member_used || !this.userMembership) return 0;
+                    return this.originalPrice * (1 - this.userMembership.discount);
+                },
+                
+                finalPrice() {
+                    return this.originalPrice - this.memberDiscount;
+                },
+                
+                averageRating() {
+                    if (this.reviews.length === 0) return 0;
+                    const sum = this.reviews.reduce((acc, review) => acc + review.rating, 0);
+                    return (sum / this.reviews.length).toFixed(1);
+                }
+            },
+            mounted() {
+                this.checkAuth();
+                this.loadUserInfo();
+                this.loadFacilityInfo();
+                this.loadUserMembership();
+                this.loadReviews();
+            },
+            methods: {
+                // 检查登录状态
+                checkAuth() {
+                    if (!Auth.requireUser()) {
+                        return;
+                    }
+                },
+                
+                // 加载用户信息
+                loadUserInfo() {
+                    this.userInfo = Auth.getUserInfo() || {};
+                    this.bookingForm.contact_phone = this.userInfo.phone || '';
+                },
+                
+                // 加载场馆信息
+                loadFacilityInfo() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const facilityId = urlParams.get('facility_id');
+                    
+                    if (!facilityId) {
+                        this.$message.error('场馆ID不存在');
+                        this.goToPage('facilities');
+                        return;
+                    }
+                    
+                    this.bookingForm.facility_id = parseInt(facilityId);
+                    this.facilityInfo = MockData.getFacilityById(facilityId) || {};
+                    
+                    if (!this.facilityInfo.facility_id) {
+                        this.$message.error('场馆不存在');
+                        this.goToPage('facilities');
+                        return;
+                    }
+                    
+                    this.generateTimeSlots();
+                },
+                
+                // 加载用户会员信息
+                loadUserMembership() {
+                    this.userMembership = MockData.getUserMembership(this.userInfo.account_id);
+                },
+                
+                // 生成时间段
+                generateTimeSlots() {
+                    const slots = [];
+                    const startHour = 6;
+                    const endHour = 22;
+                    
+                    for (let hour = startHour; hour < endHour; hour += 2) {
+                        const startTime = `${hour.toString().padStart(2, '0')}:00`;
+                        const endTime = `${(hour + 2).toString().padStart(2, '0')}:00`;
+                        
+                        slots.push({
+                            id: `${startTime}-${endTime}`,
+                            start_time: startTime,
+                            end_time: endTime,
+                            price: this.facilityInfo.price * 2, // 2小时价格
+                            disabled: Math.random() < 0.2 // 随机20%的时段已被预约
+                        });
+                    }
+                    
+                    this.availableTimeSlots = slots;
+                },
+                
+                // 选择时间段
+                selectTimeSlot(slot) {
+                    if (slot.disabled) return;
+                    
+                    this.selectedTimeSlot = slot.id;
+                    this.bookingForm.start_time = slot.start_time;
+                    this.bookingForm.end_time = slot.end_time;
+                },
+                
+                // 提交预约
+                submitBooking() {
+                    this.$refs.bookingForm.validate((valid) => {
+                        if (!valid) return false;
+                        
+                        if (!this.selectedTimeSlot) {
+                            this.$message.error('请选择预约时间');
+                            return;
+                        }
+                        
+                        this.submitting = true;
+                        
+                        // 模拟API调用
+                        setTimeout(() => {
+                            this.submitting = false;
+                            this.$message.success('预约成功！');
+                            
+                            // 跳转到个人中心查看预约记录
+                            setTimeout(() => {
+                                this.goToPage('profile');
+                            }, 1500);
+                        }, 2000);
+                    });
+                },
+                
+                // 加载评价
+                loadReviews() {
+                    this.reviews = MockData.getFacilityReviews(this.facilityInfo.facility_id);
+                    this.displayedReviews = this.reviews.slice(0, 5);
+                },
+                
+                // 加载更多评价
+                loadMoreReviews() {
+                    this.loadingReviews = true;
+                    
+                    setTimeout(() => {
+                        const nextPage = this.reviewsPage + 1;
+                        const start = nextPage * 5;
+                        const end = start + 5;
+                        
+                        this.displayedReviews = this.reviews.slice(0, end);
+                        this.reviewsPage = nextPage;
+                        this.loadingReviews = false;
+                    }, 500);
+                },
+                
+                // 获取场馆类型名称
+                getFacilityTypeName(typeId) {
+                    const types = MockData.facilityTypes;
+                    const type = types.find(t => t.type_id === typeId);
+                    return type ? type.type_name : '未知类型';
+                },
+                
+                // 获取状态样式类
+                getStatusClass(status) {
+                    const classMap = {
+                        1: 'status-available',
+                        2: 'status-maintenance',
+                        3: 'status-closed'
+                    };
+                    return classMap[status] || 'status-unknown';
+                },
+                
+                // 获取状态文本
+                getStatusText(status) {
+                    const textMap = {
+                        1: '可用',
+                        2: '维护中',
+                        3: '已关闭'
+                    };
+                    return textMap[status] || '未知';
+                },
+                
+                // 格式化日期
+                formatDate(dateString) {
+                    return dayjs(dateString).format('YYYY-MM-DD HH:mm');
+                },
+                
+                // 页面跳转
+                goToPage(page) {
+                    const pageMap = {
+                        home: 'home.html',
+                        facilities: 'facilities.html',
+                        profile: 'profile.html',
+                        ai: 'ai-chat.html'
+                    };
+                    if (pageMap[page]) {
+                        window.location.href = pageMap[page];
+                    }
+                },
+                
+                // 处理用户下拉菜单命令
+                handleUserCommand(command) {
+                    switch (command) {
+                        case 'profile':
+                            this.goToPage('profile');
+                            break;
+                        case 'settings':
+                            this.$message.info('设置功能开发中');
+                            break;
+                        case 'logout':
+                            this.handleLogout();
+                            break;
+                    }
+                },
+                
+                // 处理退出登录
+                handleLogout() {
+                    this.$confirm('确定要退出登录吗？', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        Auth.logout();
+                        this.$message.success('已退出登录');
+                        window.location.href = '../../index.html';
+                    }).catch(() => {});
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,1425 @@
+/* 管理员端通用样式 */
+:root {
+    --admin-primary: #3498db;
+    --admin-secondary: #2c3e50;
+    --admin-success: #2ecc71;
+    --admin-warning: #f39c12;
+    --admin-danger: #e74c3c;
+    --admin-info: #9b59b6;
+    --admin-light: #ecf0f1;
+    --admin-dark: #34495e;
+    --sidebar-width: 250px;
+    --sidebar-collapsed-width: 64px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f8f9fa;
+    color: #333;
+    overflow-x: hidden;
+}
+
+/* 管理员布局 */
+.admin-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background: var(--admin-secondary);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.admin-sidebar.collapsed {
+    width: var(--sidebar-collapsed-width);
+}
+
+.sidebar-header {
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    border-bottom: 1px solid #34495e;
+}
+
+.sidebar-header .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.sidebar-header .logo i {
+    font-size: 1.5rem;
+    color: var(--admin-primary);
+}
+
+.collapse-btn {
+    color: white !important;
+    padding: 8px !important;
+}
+
+.sidebar-menu {
+    padding: 20px 0;
+}
+
+.sidebar-menu .el-menu {
+    border: none;
+}
+
+.sidebar-menu .el-menu-item {
+    height: 50px;
+    line-height: 50px;
+    margin: 5px 15px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.sidebar-menu .el-menu-item:hover {
+    background: rgba(52, 152, 219, 0.2) !important;
+}
+
+.sidebar-menu .el-menu-item.is-active {
+    background: var(--admin-primary) !important;
+    color: white !important;
+}
+
+.sidebar-menu .el-menu-item i {
+    margin-right: 10px;
+    font-size: 1.1rem;
+}
+
+/* 主要内容区域 */
+.admin-main {
+    margin-left: var(--sidebar-width);
+    min-height: 100vh;
+    transition: all 0.3s ease;
+}
+
+.admin-main.expanded {
+    margin-left: var(--sidebar-collapsed-width);
+}
+
+/* 顶部导航 */
+.admin-header {
+    height: 70px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 999;
+}
+
+.header-left h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--admin-secondary);
+    margin: 0 0 5px 0;
+}
+
+.page-desc {
+    color: #666;
+    font-size: 14px;
+}
+
+.header-right .user-dropdown {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 8px 15px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.header-right .user-dropdown:hover {
+    background: #f8f9fa;
+}
+
+.username {
+    font-weight: 500;
+    color: var(--admin-secondary);
+}
+
+/* 仪表盘内容 */
+.dashboard-content {
+    padding: 30px;
+}
+
+/* 关键指标卡片 */
+.metrics-section {
+    margin-bottom: 30px;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.metric-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: all 0.3s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.metric-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.metric-info {
+    flex: 1;
+}
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--admin-secondary);
+    margin-bottom: 5px;
+}
+
+.metric-label {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.metric-change {
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.metric-change.positive {
+    color: var(--admin-success);
+}
+
+.metric-change.negative {
+    color: var(--admin-danger);
+}
+
+.metric-change.neutral {
+    color: #666;
+}
+
+/* 图表区域 */
+.charts-section {
+    margin-bottom: 30px;
+}
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 20px;
+}
+
+.chart-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.chart-header h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--admin-secondary);
+    margin: 0;
+}
+
+.chart-container {
+    position: relative;
+}
+
+/* 底部区域 */
+.bottom-section {
+    margin-bottom: 30px;
+}
+
+.bottom-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.realtime-card,
+.status-card,
+.actions-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.card-header h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--admin-secondary);
+    margin: 0;
+}
+
+/* 实时预约 */
+.realtime-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.realtime-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.realtime-item:hover {
+    background: #e9ecef;
+}
+
+.booking-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.booking-user {
+    font-weight: 600;
+    color: var(--admin-secondary);
+}
+
+.booking-facility {
+    color: #666;
+    font-size: 14px;
+}
+
+.booking-time {
+    color: #999;
+    font-size: 12px;
+}
+
+.booking-amount {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--admin-success);
+}
+
+/* 系统状态 */
+.status-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.status-label {
+    color: #666;
+    font-size: 14px;
+}
+
+/* 快捷操作 */
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+}
+
+.actions-grid .el-button {
+    height: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    font-size: 12px;
+    border-radius: 10px;
+}
+
+.actions-grid .el-button i {
+    font-size: 1.2rem;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .admin-sidebar.collapsed {
+        transform: translateX(0);
+        width: 100%;
+    }
+    
+    .admin-main {
+        margin-left: 0;
+    }
+    
+    .admin-main.expanded {
+        margin-left: 0;
+    }
+    
+    .dashboard-content {
+        padding: 20px 15px;
+    }
+    
+    .admin-header {
+        padding: 0 15px;
+    }
+    
+    .header-left h1 {
+        font-size: 1.2rem;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .bottom-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .metric-card {
+        padding: 20px;
+    }
+    
+    .chart-card,
+    .realtime-card,
+    .status-card,
+    .actions-card {
+        padding: 20px;
+    }
+    
+    .chart-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+    
+    .actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* 表格样式 */
+.admin-table {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    margin-bottom: 30px;
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.table-header h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--admin-secondary);
+    margin: 0;
+}
+
+.table-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* 表单样式 */
+.admin-form {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.form-header {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.form-header h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--admin-secondary);
+    margin: 0;
+}
+
+.form-actions {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid #f0f0f0;
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+}
+
+/* 统计卡片 */
+.stats-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+}
+
+.stats-number {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: var(--admin-primary);
+    margin-bottom: 10px;
+}
+
+.stats-label {
+    color: #666;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.stats-change {
+    margin-top: 10px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+/* 通知样式 */
+.notification-item {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid var(--admin-primary);
+}
+
+.notification-title {
+    font-weight: 600;
+    color: var(--admin-secondary);
+    margin-bottom: 5px;
+}
+
+.notification-content {
+    color: #666;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.notification-time {
+    color: #999;
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+/* 加载状态 */
+.loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    color: #666;
+}
+
+/* 空状态 */
+.empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: #666;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    color: #ddd;
+    margin-bottom: 15px;
+}
+
+.empty-state h3 {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    color: #999;
+}
+
+.empty-state p {
+    color: #bbb;
+    font-size: 14px;
+}
+
+
+/* 场馆详情样式 */
+.facility-detail {
+    padding: 10px 0;
+}
+
+.detail-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    gap: 10px;
+}
+
+.detail-item label {
+    min-width: 80px;
+    font-weight: 600;
+    color: var(--admin-secondary);
+}
+
+.detail-item span,
+.detail-item p {
+    flex: 1;
+    color: #666;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.detail-item .el-tag {
+    margin: 0;
+}
+
+.detail-item .el-image {
+    margin-top: 5px;
+}
+
+/* 表格操作按钮样式 */
+.el-table .el-button--text.text-warning {
+    color: var(--admin-warning);
+}
+
+.el-table .el-button--text.text-success {
+    color: var(--admin-success);
+}
+
+.el-table .el-button--text.text-danger {
+    color: var(--admin-danger);
+}
+
+.el-table .el-button--text:hover.text-warning {
+    color: #d68910;
+}
+
+.el-table .el-button--text:hover.text-success {
+    color: #27ae60;
+}
+
+.el-table .el-button--text:hover.text-danger {
+    color: #c0392b;
+}
+
+/* 图片错误占位符 */
+.image-slot {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    background: #f5f7fa;
+    color: #909399;
+    font-size: 14px;
+}
+
+/* 对话框样式优化 */
+.el-dialog__body {
+    padding: 20px 25px;
+}
+
+.dialog-footer {
+    text-align: right;
+}
+
+.dialog-footer .el-button {
+    margin-left: 10px;
+}
+
+/* 表单样式优化 */
+.el-form-item__label {
+    font-weight: 500;
+    color: var(--admin-secondary);
+}
+
+.el-input-number {
+    width: 100%;
+}
+
+.el-input-number .el-input__inner {
+    text-align: left;
+}
+
+/* 分页样式 */
+.el-pagination {
+    text-align: right;
+    margin-top: 20px;
+}
+
+/* 搜索和筛选区域 */
+.table-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.table-actions .el-input,
+.table-actions .el-select {
+    flex-shrink: 0;
+}
+
+/* 响应式优化 */
+@media (max-width: 768px) {
+    .table-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .table-actions .el-input,
+    .table-actions .el-select,
+    .table-actions .el-button {
+        width: 100%;
+    }
+    
+    .detail-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .detail-item label {
+        min-width: auto;
+    }
+    
+    .el-dialog {
+        width: 95% !important;
+        margin: 0 auto;
+    }
+    
+    .el-table {
+        font-size: 12px;
+    }
+    
+    .el-table .el-button--text {
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+}
+
+
+/* 预约详情样式 */
+.booking-detail {
+    padding: 10px 0;
+}
+
+.detail-section {
+    margin-bottom: 25px;
+}
+
+.detail-section h4 {
+    margin: 0 0 15px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #f0f0f0;
+    color: var(--admin-secondary);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.detail-item label {
+    min-width: 80px;
+    font-weight: 500;
+    color: var(--admin-secondary);
+    flex-shrink: 0;
+}
+
+.detail-item span {
+    color: #666;
+    flex: 1;
+}
+
+.detail-item .amount {
+    font-weight: 600;
+    color: var(--admin-primary);
+    font-size: 16px;
+}
+
+.notes {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    border-left: 4px solid var(--admin-primary);
+    margin: 0;
+    color: #666;
+    line-height: 1.6;
+}
+
+/* 日期选择器样式 */
+.el-date-editor {
+    width: 240px;
+}
+
+/* 表格中的金额样式 */
+.el-table .cell .amount {
+    font-weight: 600;
+    color: var(--admin-primary);
+}
+
+/* 预约时间格式化样式 */
+.booking-time {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+}
+
+/* 状态标签样式优化 */
+.el-tag.el-tag--warning {
+    background-color: #fdf6ec;
+    border-color: #f5dab1;
+    color: #e6a23c;
+}
+
+.el-tag.el-tag--primary {
+    background-color: #ecf5ff;
+    border-color: #b3d8ff;
+    color: #409eff;
+}
+
+.el-tag.el-tag--success {
+    background-color: #f0f9ff;
+    border-color: #b3e5fc;
+    color: #67c23a;
+}
+
+.el-tag.el-tag--danger {
+    background-color: #fef0f0;
+    border-color: #fbc4c4;
+    color: #f56c6c;
+}
+
+/* 导出按钮样式 */
+.el-button--primary.is-plain {
+    background: #ecf5ff;
+    border-color: #b3d8ff;
+    color: #409eff;
+}
+
+.el-button--primary.is-plain:hover {
+    background: #409eff;
+    border-color: #409eff;
+    color: #fff;
+}
+
+/* 响应式优化 */
+@media (max-width: 768px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .detail-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .detail-item label {
+        min-width: auto;
+        font-size: 14px;
+    }
+    
+    .table-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .table-actions .el-input,
+    .table-actions .el-select,
+    .table-actions .el-date-picker,
+    .table-actions .el-button {
+        width: 100%;
+    }
+    
+    .el-date-editor {
+        width: 100% !important;
+    }
+}
+
+
+/* 统计报表页面样式 */
+.report-filters {
+    margin-bottom: 25px;
+}
+
+.filter-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-item label {
+    font-weight: 500;
+    color: var(--admin-secondary);
+    white-space: nowrap;
+}
+
+.filter-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 10px;
+}
+
+/* 图表区域样式 */
+.charts-section {
+    margin-bottom: 30px;
+}
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 25px;
+}
+
+.chart-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px 15px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.chart-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--admin-secondary);
+}
+
+.chart-header .el-icon-info {
+    color: #909399;
+    cursor: help;
+}
+
+.chart-container {
+    height: 300px;
+    padding: 20px;
+}
+
+/* 数据表格区域样式 */
+.data-table-section {
+    margin-top: 30px;
+}
+
+.data-table-section .el-card__header {
+    padding: 20px 25px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.data-table-section .el-card__body {
+    padding: 0;
+}
+
+.data-table-section .el-table {
+    border: none;
+}
+
+.data-table-section .el-table th {
+    background-color: #fafafa;
+    border-bottom: 1px solid #ebeef5;
+}
+
+/* 进度条样式优化 */
+.el-progress-bar__outer {
+    background-color: #f0f2f5;
+}
+
+.el-progress-bar__inner {
+    background: linear-gradient(90deg, #67c23a 0%, #85ce61 100%);
+}
+
+/* 按钮组样式 */
+.el-button-group .el-button {
+    border-radius: 0;
+}
+
+.el-button-group .el-button:first-child {
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+}
+
+.el-button-group .el-button:last-child {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+/* 工具提示样式 */
+.el-tooltip__popper {
+    max-width: 200px;
+}
+
+/* 卡片样式优化 */
+.el-card {
+    border: 1px solid #ebeef5;
+    border-radius: 8px;
+}
+
+.el-card__header {
+    background-color: #fafafa;
+    border-bottom: 1px solid #ebeef5;
+}
+
+/* 响应式优化 */
+@media (max-width: 1200px) {
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .chart-container {
+        height: 250px;
+    }
+}
+
+@media (max-width: 768px) {
+    .filter-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+    
+    .filter-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .filter-item .el-select,
+    .filter-item .el-date-picker {
+        width: 100%;
+    }
+    
+    .filter-actions {
+        margin-left: 0;
+        flex-direction: column;
+    }
+    
+    .filter-actions .el-button {
+        width: 100%;
+    }
+    
+    .chart-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .chart-container {
+        height: 200px;
+        padding: 10px;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .el-table {
+        font-size: 12px;
+    }
+    
+    .el-table .cell {
+        padding: 5px 8px;
+    }
+}
+
+/* 图表响应式 */
+@media (max-width: 480px) {
+    .charts-grid {
+        gap: 15px;
+    }
+    
+    .chart-card {
+        margin: 0 -10px;
+        border-radius: 0;
+    }
+    
+    .chart-container {
+        height: 180px;
+        padding: 5px;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+}
+
+
+/* 用户管理页面样式 */
+.user-detail {
+    padding: 10px 0;
+}
+
+.user-detail .detail-section {
+    margin-bottom: 25px;
+}
+
+.user-detail .detail-section h4 {
+    margin: 0 0 15px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #f0f0f0;
+    color: var(--admin-secondary);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.user-detail .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.user-detail .detail-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-detail .detail-item label {
+    min-width: 80px;
+    font-weight: 500;
+    color: var(--admin-secondary);
+    flex-shrink: 0;
+}
+
+.user-detail .detail-item span {
+    color: #666;
+    flex: 1;
+}
+
+.user-detail .detail-item .highlight {
+    font-weight: 600;
+    color: var(--admin-primary);
+}
+
+.user-detail .detail-item .amount {
+    font-weight: 600;
+    color: #e67e22;
+    font-size: 16px;
+}
+
+/* 会员管理样式 */
+.member-info {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+.member-info p {
+    margin: 8px 0;
+    color: #666;
+}
+
+.member-info strong {
+    color: var(--admin-secondary);
+}
+
+/* 表格操作按钮样式 */
+.el-table .cell .el-button--text {
+    padding: 0;
+    margin-right: 8px;
+}
+
+.el-table .cell .text-warning {
+    color: #e6a23c;
+}
+
+.el-table .cell .text-danger {
+    color: #f56c6c;
+}
+
+.el-table .cell .text-success {
+    color: #67c23a;
+}
+
+/* 头像样式优化 */
+.el-avatar {
+    background-color: var(--admin-primary);
+    color: white;
+    font-weight: 600;
+}
+
+/* 标签样式优化 */
+.el-tag {
+    border-radius: 12px;
+    font-size: 12px;
+    padding: 0 8px;
+    height: 22px;
+    line-height: 20px;
+}
+
+/* 表单样式优化 */
+.el-form-item__label {
+    font-weight: 500;
+    color: var(--admin-secondary);
+}
+
+.el-input__inner,
+.el-select .el-input__inner {
+    border-radius: 6px;
+}
+
+.el-input__inner:focus,
+.el-select .el-input__inner:focus {
+    border-color: var(--admin-primary);
+}
+
+/* 对话框样式优化 */
+.el-dialog__header {
+    background-color: #fafafa;
+    padding: 20px 25px 15px;
+    border-bottom: 1px solid #ebeef5;
+}
+
+.el-dialog__title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--admin-secondary);
+}
+
+.el-dialog__body {
+    padding: 25px;
+}
+
+.dialog-footer {
+    text-align: right;
+    padding-top: 15px;
+    border-top: 1px solid #ebeef5;
+}
+
+/* 分页样式优化 */
+.el-pagination {
+    text-align: right;
+}
+
+.el-pagination .el-pager li {
+    border-radius: 4px;
+    margin: 0 2px;
+}
+
+.el-pagination .el-pager li.active {
+    background-color: var(--admin-primary);
+    color: white;
+}
+
+/* 加载状态样式 */
+.el-loading-mask {
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+/* 空状态样式 */
+.el-table__empty-block {
+    padding: 40px 0;
+}
+
+.el-table__empty-text {
+    color: #909399;
+    font-size: 14px;
+}
+
+/* 响应式优化 */
+@media (max-width: 768px) {
+    .user-detail .detail-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .user-detail .detail-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .user-detail .detail-item label {
+        min-width: auto;
+        font-size: 14px;
+    }
+    
+    .table-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .table-actions .el-input,
+    .table-actions .el-select,
+    .table-actions .el-button {
+        width: 100%;
+    }
+    
+    .el-table .cell {
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+    
+    .el-table .cell .el-button--text {
+        font-size: 12px;
+        margin-right: 5px;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .metric-card {
+        padding: 15px;
+    }
+    
+    .metric-value {
+        font-size: 20px;
+    }
+    
+    .el-dialog {
+        width: 95% !important;
+        margin: 5vh auto !important;
+    }
+    
+    .el-dialog__body {
+        padding: 15px;
+    }
+    
+    .el-form-item {
+        margin-bottom: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .el-table {
+        font-size: 11px;
+    }
+    
+    .el-table th,
+    .el-table td {
+        padding: 8px 5px;
+    }
+    
+    .table-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+    
+    .table-header h3 {
+        margin-bottom: 0;
+    }
+}
+
