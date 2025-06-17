@@ -320,22 +320,6 @@
                                         修改密码
                                     </el-button>
                                 </div>
-                                
-                                <div class="setting-item">
-                                    <div class="setting-info">
-                                        <h4>消息通知</h4>
-                                        <p>接收预约提醒和系统通知</p>
-                                    </div>
-                                    <el-switch v-model="settings.notifications"></el-switch>
-                                </div>
-                                
-                                <div class="setting-item">
-                                    <div class="setting-info">
-                                        <h4>邮件通知</h4>
-                                        <p>通过邮件接收重要通知</p>
-                                    </div>
-                                    <el-switch v-model="settings.emailNotifications"></el-switch>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -426,8 +410,6 @@
                     bookings: [],
                     orders: [],
                     settings: {
-                        notifications: true,
-                        emailNotifications: false
                     },
                     tabs: [
                         { key: 'bookings', label: '预约记录', icon: 'el-icon-tickets' },

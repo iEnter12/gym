@@ -78,59 +78,6 @@
                 <div class="chat-section">
                     <div class="container">
                         <div class="chat-container">
-                            <!-- 侧边栏 -->
-                            <div class="chat-sidebar">
-                                <!-- 快捷功能 -->
-                                <div class="quick-actions">
-                                    <h3>快捷功能</h3>
-                                    <div class="action-buttons">
-                                        <el-button
-                                            v-for="action in quickActions"
-                                            :key="action.id"
-                                            type="primary"
-                                            plain
-                                            size="small"
-                                            @click="sendQuickMessage(action.message)">
-                                            <i :class="action.icon"></i>
-                                            {{ action.label }}
-                                        </el-button>
-                                    </div>
-                                </div>
-
-                                <!-- 智能推荐 -->
-                                <div class="recommendations">
-                                    <h3>智能推荐</h3>
-                                    <div class="recommendation-list">
-                                        <div
-                                            v-for="rec in recommendations"
-                                            :key="rec.id"
-                                            class="recommendation-item"
-                                            @click="viewFacility(rec.facility_id)">
-                                            <img :src="rec.image" :alt="rec.name">
-                                            <div class="rec-info">
-                                                <h4>{{ rec.name }}</h4>
-                                                <p>{{ rec.reason }}</p>
-                                                <div class="rec-price">¥{{ rec.price }}/小时</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- 常见问题 -->
-                                <div class="faq-section">
-                                    <h3>常见问题</h3>
-                                    <el-collapse v-model="activeFaq">
-                                        <el-collapse-item
-                                            v-for="faq in faqs"
-                                            :key="faq.id"
-                                            :title="faq.question"
-                                            :name="faq.id">
-                                            <p>{{ faq.answer }}</p>
-                                        </el-collapse-item>
-                                    </el-collapse>
-                                </div>
-                            </div>
-
                             <!-- 聊天主区域 -->
                             <div class="chat-main">
                                 <!-- 聊天消息区域 -->
@@ -150,78 +97,74 @@
                                         <div class="message-content">
                                             <div class="message-bubble">
                                                 <div v-if="message.type === 'ai'" class="message-header">
-                                                    <span class="sender-name">AI助手</span>
+                                                    <span class="message-sender">AI助手</span>
+                                                    <span class="message-time">{{ formatTime(message.timestamp) }}</span>
+                                                </div>
+                                                <div v-else class="message-header">
+                                                    <span class="message-sender">{{ userInfo.username || '您' }}</span>
                                                     <span class="message-time">{{ formatTime(message.timestamp) }}</span>
                                                 </div>
                                                 <div class="message-text" v-html="formatMessage(message.content)"></div>
-                                                
-                                                <!-- 快捷操作按钮 -->
-                                                <div v-if="message.type === 'ai' && message.actions" class="message-actions">
-                                                    <el-button
-                                                        v-for="action in message.actions"
-                                                        :key="action.id"
-                                                        type="text"
-                                                        size="mini"
-                                                        @click="handleMessageAction(action)">
-                                                        {{ action.label }}
-                                                    </el-button>
-                                                </div>
+                                            </div>
+                                            
+                                            <div v-if="message.actions && message.actions.length > 0" class="message-actions">
+                                                <el-button 
+                                                    v-for="action in message.actions" 
+                                                    :key="action.id"
+                                                    size="small" 
+                                                    type="primary" 
+                                                    plain
+                                                    @click="handleMessageAction(action)">
+                                                    {{ action.label }}
+                                                </el-button>
                                             </div>
                                         </div>
                                         
                                         <div v-if="message.type === 'user'" class="message-avatar">
-                                            <el-avatar :src="userInfo.avatar" :size="40">
-                                                {{ userInfo.real_name ? userInfo.real_name.charAt(0) : 'U' }}
+                                            <el-avatar :size="40" :src="userInfo.avatar">
+                                                {{ userInfo.username ? userInfo.username.charAt(0).toUpperCase() : 'U' }}
                                             </el-avatar>
                                         </div>
                                     </div>
                                     
-                                    <!-- 正在输入指示器 -->
-                                    <div v-if="isTyping" class="typing-indicator">
-                                        <div class="message-item ai-message">
-                                            <div class="message-avatar">
-                                                <el-avatar :size="40" style="background: var(--primary-color);">
-                                                    <i class="el-icon-chat-dot-round"></i>
-                                                </el-avatar>
-                                            </div>
-                                            <div class="message-content">
-                                                <div class="message-bubble">
-                                                    <div class="typing-dots">
-                                                        <span></span>
-                                                        <span></span>
-                                                        <span></span>
-                                                    </div>
+                                    <div v-if="isTyping" class="message-item ai-message">
+                                        <div class="message-avatar">
+                                            <el-avatar :size="40" style="background: var(--primary-color);">
+                                                <i class="el-icon-chat-dot-round"></i>
+                                            </el-avatar>
+                                        </div>
+                                        <div class="message-content">
+                                            <div class="message-bubble">
+                                                <div class="message-header">
+                                                    <span class="message-sender">AI助手</span>
+                                                    <span class="message-time">{{ formatTime(new Date()) }}</span>
+                                                </div>
+                                                <div class="message-text typing-indicator">
+                                                    <span></span>
+                                                    <span></span>
+                                                    <span></span>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-
+                                
                                 <!-- 输入区域 -->
-                                <div class="chat-input-area">
-                                    <div class="input-container">
-                                        <el-input
-                                            v-model="inputMessage"
-                                            type="textarea"
-                                            :rows="3"
-                                            placeholder="请输入您的问题..."
-                                            @keydown.enter.exact="sendMessage"
-                                            @keydown.enter.shift.exact.prevent="inputMessage += '\n'"
-                                            resize="none">
-                                        </el-input>
-                                        <div class="input-actions">
-                                            <el-button
-                                                type="primary"
-                                                :disabled="!inputMessage.trim() || isTyping"
-                                                @click="sendMessage">
-                                                <i class="el-icon-s-promotion"></i>
-                                                发送
-                                            </el-button>
-                                        </div>
-                                    </div>
-                                    <div class="input-tips">
-                                        <span>按 Enter 发送，Shift + Enter 换行</span>
-                                    </div>
+                                <div class="chat-input">
+                                    <el-input
+                                        v-model="inputMessage"
+                                        type="text"
+                                        placeholder="输入您的问题..."
+                                        @keyup.enter.native="sendMessage"
+                                        :disabled="isTyping">
+                                        <el-button 
+                                            slot="append" 
+                                            icon="el-icon-s-promotion" 
+                                            @click="sendMessage"
+                                            :disabled="isTyping">
+                                            发送
+                                        </el-button>
+                                    </el-input>
                                 </div>
                             </div>
                         </div>
@@ -242,7 +185,6 @@
                     userInfo: {},
                     inputMessage: '',
                     isTyping: false,
-                    activeFaq: [],
                     messages: [
                         {
                             id: 1,
@@ -254,67 +196,6 @@
                                 { id: 'search', label: '查询场馆' },
                                 { id: 'help', label: '使用帮助' }
                             ]
-                        }
-                    ],
-                    quickActions: [
-                        { id: 1, label: '推荐场馆', icon: 'el-icon-star-off', message: '请为我推荐一些热门的体育场馆' },
-                        { id: 2, label: '查询价格', icon: 'el-icon-money', message: '各个场馆的价格是多少？' },
-                        { id: 3, label: '预约流程', icon: 'el-icon-question', message: '如何预约场馆？' },
-                        { id: 4, label: '会员优惠', icon: 'el-icon-medal', message: '会员有什么优惠？' },
-                        { id: 5, label: '营业时间', icon: 'el-icon-time', message: '场馆的营业时间是什么时候？' },
-                        { id: 6, label: '取消预约', icon: 'el-icon-close', message: '如何取消已经预约的场馆？' }
-                    ],
-                    recommendations: [
-                        {
-                            id: 1,
-                            facility_id: 1,
-                            name: '1号篮球场',
-                            image: '../../assets/images/basketball-1.jpg',
-                            reason: '根据您的运动偏好推荐',
-                            price: 80
-                        },
-                        {
-                            id: 2,
-                            facility_id: 3,
-                            name: '1号羽毛球场',
-                            image: '../../assets/images/badminton-1.jpg',
-                            reason: '设施完善，评价很高',
-                            price: 60
-                        },
-                        {
-                            id: 3,
-                            facility_id: 5,
-                            name: '标准游泳池',
-                            image: '../../assets/images/swimming-pool.jpg',
-                            reason: '适合健身锻炼',
-                            price: 40
-                        }
-                    ],
-                    faqs: [
-                        {
-                            id: '1',
-                            question: '如何预约场馆？',
-                            answer: '您可以通过场馆列表页面选择心仪的场馆，点击"立即预约"按钮，填写预约信息即可完成预约。'
-                        },
-                        {
-                            id: '2',
-                            question: '可以取消预约吗？',
-                            answer: '可以的。在个人中心的预约记录中，对于"待确认"状态的预约，您可以点击"取消预约"按钮进行取消。'
-                        },
-                        {
-                            id: '3',
-                            question: '会员有什么优惠？',
-                            answer: '会员可以享受预约折扣、免费预约次数等优惠。不同会员等级享受的优惠不同，详情请查看会员套餐页面。'
-                        },
-                        {
-                            id: '4',
-                            question: '场馆营业时间是什么时候？',
-                            answer: '大部分场馆的营业时间是每日6:00-22:00，具体时间可能因场馆而异，请在场馆详情页面查看准确信息。'
-                        },
-                        {
-                            id: '5',
-                            question: '如何支付预约费用？',
-                            answer: '目前支持在线支付，包括微信支付、支付宝等方式。预约确认后，系统会引导您完成支付流程。'
                         }
                     ]
                 }
@@ -494,11 +375,6 @@
                         default:
                             this.$message.info('功能开发中');
                     }
-                },
-                
-                // 查看场馆
-                viewFacility(facilityId) {
-                    window.location.href = `booking.html?facility_id=${facilityId}`;
                 },
                 
                 // 格式化消息内容
