@@ -102,40 +102,7 @@
                 </div>
 
                 <!-- 会员状态 -->
-                <div class="membership-section" v-if="userMembership">
-                    <div class="container">
-                        <div class="membership-card">
-                            <div class="membership-header">
-                                <h3>
-                                    <i class="el-icon-medal"></i>
-                                    会员状态
-                                </h3>
-                                <el-tag type="success" size="large">{{ userMembership.package_name }}</el-tag>
-                            </div>
-                            <div class="membership-content">
-                                <div class="membership-info">
-                                    <div class="info-item">
-                                        <span class="label">有效期至：</span>
-                                        <span class="value">{{ formatDate(userMembership.expire_time) }}</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <span class="label">剩余免费次数：</span>
-                                        <span class="value">{{ userMembership.remaining_free_times }}次</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <span class="label">会员折扣：</span>
-                                        <span class="value">{{ userMembership.discount * 10 }}折</span>
-                                    </div>
-                                </div>
-                                <div class="membership-actions">
-                                    <el-button type="primary" @click="showMembershipPackages">
-                                        续费会员
-                                    </el-button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <!-- 删除会员状态区域 -->
 
                 <!-- 功能导航 -->
                 <div class="function-nav-section">
@@ -397,7 +364,6 @@
             data() {
                 return {
                     userInfo: {},
-                    userMembership: null,
                     userStats: {},
                     activeTab: 'bookings',
                     bookingFilter: 'all',
@@ -511,16 +477,13 @@
                 
                 // 加载用户数据
                 loadUserData() {
-                    this.loadUserMembership();
                     this.loadUserStats();
                     this.loadBookings();
                     this.loadOrders();
                 },
                 
                 // 加载用户会员信息
-                loadUserMembership() {
-                    this.userMembership = MockData.getUserMembership(this.userInfo.account_id);
-                },
+                // 删除loadUserMembership方法
                 
                 // 加载用户统计
                 loadUserStats() {
@@ -582,8 +545,7 @@
                 // 获取订单类型文本
                 getOrderTypeText(type) {
                     const textMap = {
-                        1: '场馆预约',
-                        2: '会员购买'
+                        1: '场馆预约'
                     };
                     return textMap[type] || '未知';
                 },
@@ -630,9 +592,7 @@
                 },
                 
                 // 显示会员套餐
-                showMembershipPackages() {
-                    this.$message.info('会员套餐功能开发中');
-                },
+                // 删除showMembershipPackages方法
                 
                 // 保存个人信息
                 saveProfile() {

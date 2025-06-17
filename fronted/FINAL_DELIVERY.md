@@ -14,6 +14,7 @@
 
 ### 🔧 技术特色
 - **原生技术栈**：HTML5 + CSS3 + JavaScript + Element UI
+- **Vue.js技术栈**：基于Vue 2.7.14框架开发
 - **模块化设计**：清晰的代码结构，便于维护和扩展
 - **模拟数据系统**：完整的前端数据模拟，便于开发测试
 - **API接口预留**：完整的API接口定义，便于后端集成
@@ -26,7 +27,7 @@
 - **权限控制**：基于角色的页面访问控制
 - **登录状态保持**：本地存储用户登录信息
 
-### 👤 普通用户端（6个页面）
+### 👤 普通用户端（5个页面）
 
 #### 1. 用户首页 (`pages/user/home.html`)
 - **轮播图展示**：精美的场馆图片轮播
@@ -58,11 +59,9 @@
 
 #### 5. AI助手页 (`pages/user/ai-chat.html`)
 - **智能聊天**：AI助手对话界面
-- **快捷功能**：常用操作快捷按钮
-- **智能推荐**：基于用户偏好的场馆推荐
-- **常见问题**：FAQ自助服务
 
-### 🛠️ 管理员端（5个页面）
+
+### 🛠️ 管理员端（4个页面）
 
 #### 1. 数据仪表盘 (`pages/admin/dashboard.html`)
 - **关键指标**：用户数、预约数、收入、场馆数统计
@@ -84,14 +83,8 @@
 - **详情查看**：完整的预约信息展示
 - **数据导出**：预约数据导出功能
 
-#### 4. 统计报表页 (`pages/admin/reports.html`)
-- **多维度分析**：收入、使用率、用户活跃度分析
-- **图表展示**：使用ECharts专业图表库
-- **报表生成**：自定义时间范围和类型
-- **数据导出**：报表数据导出功能
-- **趋势分析**：业务趋势和预测
 
-#### 5. 用户管理页 (`pages/admin/users.html`)
+#### 4. 用户管理页 (`pages/admin/users.html`)
 - **用户列表**：完整的用户信息管理
 - **会员管理**：会员类型和到期时间管理
 - **状态管理**：用户封禁/解封功能
@@ -104,38 +97,32 @@
 sports-venue-system/
 ├── index.html                 # 登录页面
 ├── assets/                    # 静态资源
-│   ├── css/
+│   ├── css/                   # 样式文件
 │   │   ├── common.css        # 通用样式
 │   │   ├── login.css         # 登录页面样式
 │   │   ├── user.css          # 用户端样式
 │   │   └── admin.css         # 管理员端样式
-│   ├── images/               # 图片资源
-│   └── js/                   # JavaScript文件
-├── components/               # 组件目录
-│   ├── common/              # 通用组件
-│   ├── user/                # 用户端组件
-│   └── admin/               # 管理员端组件
-├── pages/                   # 页面目录
-│   ├── user/                # 用户端页面
+│   └── images/               # 图片资源
+├── pages/                    # 页面目录
+│   ├── user/                 # 用户端页面
 │   │   ├── home.html        # 用户首页
 │   │   ├── facilities.html  # 场馆列表
 │   │   ├── booking.html     # 预约详情
 │   │   ├── profile.html     # 个人中心
 │   │   └── ai-chat.html     # AI助手
-│   └── admin/               # 管理员端页面
+│   └── admin/                # 管理员端页面
 │       ├── dashboard.html   # 数据仪表盘
 │       ├── facilities.html  # 场馆管理
 │       ├── bookings.html    # 预约管理
-│       ├── reports.html     # 统计报表
 │       └── users.html       # 用户管理
-├── utils/                   # 工具类
-│   ├── api.js              # API接口管理
-│   ├── auth.js             # 认证管理
-│   └── mock.js             # 模拟数据
-├── README.md               # 项目说明
-├── API_INTEGRATION.md      # API集成文档
-├── PROJECT_SUMMARY.md      # 项目总结
-└── package.json           # 项目配置
+├── utils/                    # 工具类
+│   ├── api.js               # API接口管理
+│   ├── auth.js              # 认证管理
+│   └── mock.js              # 模拟数据
+├── README.md                # 项目说明
+├── API_INTEGRATION.md       # API集成文档
+├── PROJECT_SUMMARY.md       # 项目总结
+└── package.json            # 项目配置
 ```
 
 ## 🧪 测试账户
@@ -157,13 +144,13 @@ sports-venue-system/
 如需要完整的开发环境，可以使用本地服务器：
 
 ```bash
-# 使用Python启动本地服务器
+# 使用Node.js的live-server
+npm run dev
+
+# 或使用Python启动本地服务器
 python -m http.server 8000
 
-# 或使用Node.js
-npx serve .
-
-# 然后访问 http://localhost:8000
+# 然后访问 http://localhost:3000 或 http://localhost:8000
 ```
 
 ### 3. 功能测试
@@ -201,34 +188,15 @@ npx serve .
 - **HTML5**：语义化标签，良好的SEO支持
 - **CSS3**：Flexbox、Grid布局，CSS变量
 - **JavaScript ES6+**：模块化、箭头函数、Promise
-- **Vue.js 2.x**：响应式数据绑定
-- **Element UI**：专业的Vue组件库
-- **ECharts**：专业的数据可视化图表库
+- **Vue.js 2.7.14**：响应式数据绑定
+- **Element UI 2.15.14**：专业的Vue组件库
+- **ECharts 5.4.3**：专业的数据可视化图表库
 
 ### 工具库
-- **Axios**：HTTP请求库
-- **Day.js**：轻量级日期处理库
-- **Element UI**：UI组件库
+- **Axios 1.6.0**：HTTP请求库
+- **Day.js 1.11.10**：轻量级日期处理库
+- **live-server 1.2.2**：本地开发服务器
 
-## 🎨 设计规范
-
-### 色彩规范
-- **主色调**：#3498db（蓝色）
-- **辅助色**：#2c3e50（深蓝灰）
-- **成功色**：#67c23a（绿色）
-- **警告色**：#e6a23c（橙色）
-- **危险色**：#f56c6c（红色）
-
-### 字体规范
-- **主字体**：-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto
-- **标题字重**：600
-- **正文字重**：400
-- **字号范围**：12px - 32px
-
-### 间距规范
-- **基础间距**：8px的倍数
-- **组件间距**：16px、24px、32px
-- **页面边距**：20px、25px
 
 ## 🔍 浏览器兼容性
 
@@ -276,8 +244,8 @@ npx serve .
 
 ### v1.0.0 (2024-06-13)
 - ✅ 完成登录系统开发
-- ✅ 完成普通用户端6个页面
-- ✅ 完成管理员端5个页面
+- ✅ 完成普通用户端5个页面
+- ✅ 完成管理员端4个页面
 - ✅ 实现统一的蓝色主题设计
 - ✅ 实现响应式布局
 - ✅ 完成模拟数据系统

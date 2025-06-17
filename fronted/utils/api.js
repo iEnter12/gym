@@ -192,36 +192,42 @@ class API {
         }
     };
     
-    // 会员相关API
+    // 会员相关API（已下线）
     memberships = {
-        // 获取会员套餐
+        // 获取会员套餐（已下线）
         getPackages: () => {
-            return axios.get(`${this.baseURL}/membership-packages`);
+            console.log('会员功能已下线');
+            return Promise.resolve({ data: [] });
         },
         
-        // 购买会员
+        // 购买会员（已下线）
         purchase: (data) => {
-            return axios.post(`${this.baseURL}/memberships`, data);
+            console.log('会员功能已下线');
+            return Promise.reject(new Error('会员功能已下线'));
         },
         
-        // 获取用户会员状态
+        // 获取用户会员状态（已下线）
         getUserMembership: () => {
-            return axios.get(`${this.baseURL}/memberships/user`);
+            console.log('会员功能已下线');
+            return Promise.resolve({ data: null });
         },
         
-        // 获取所有会员（管理员）
+        // 获取所有会员（管理员）（已下线）
         getAll: (params) => {
-            return axios.get(`${this.baseURL}/memberships`, { params });
+            console.log('会员功能已下线');
+            return Promise.resolve({ data: { list: [], total: 0 } });
         },
         
-        // 创建会员套餐（管理员）
+        // 创建会员套餐（管理员）（已下线）
         createPackage: (data) => {
-            return axios.post(`${this.baseURL}/membership-packages`, data);
+            console.log('会员功能已下线');
+            return Promise.reject(new Error('会员功能已下线'));
         },
         
-        // 更新会员套餐（管理员）
+        // 更新会员套餐（管理员）（已下线）
         updatePackage: (id, data) => {
-            return axios.put(`${this.baseURL}/membership-packages/${id}`, data);
+            console.log('会员功能已下线');
+            return Promise.reject(new Error('会员功能已下线'));
         }
     };
     

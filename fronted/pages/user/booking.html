@@ -202,12 +202,12 @@
                                         </el-input>
                                     </el-form-item>
 
-                                    <!-- 会员优惠 -->
-                                    <el-form-item v-if="userMembership" label="会员优惠">
+                                    <!-- 会员优惠已下线 -->
+                                    <!-- <el-form-item v-if="userMembership" label="会员优惠">
                                         <el-checkbox v-model="bookingForm.is_member_used">
                                             使用会员优惠（{{ userMembership.discount * 10 }}折）
                                         </el-checkbox>
-                                    </el-form-item>
+                                    </el-form-item> -->
                                 </el-form>
                             </div>
 
@@ -241,10 +241,11 @@
                                         <span class="value">¥{{ originalPrice }}</span>
                                     </div>
                                     
-                                    <div class="price-item" v-if="memberDiscount > 0">
+                                    <!-- 会员优惠已下线 -->
+                                    <!-- <div class="price-item" v-if="memberDiscount > 0">
                                         <span class="label">会员优惠：</span>
                                         <span class="value discount">-¥{{ memberDiscount }}</span>
-                                    </div>
+                                    </div> -->
                                     
                                     <div class="price-item total">
                                         <span class="label">总计：</span>
@@ -327,7 +328,8 @@
                 return {
                     userInfo: {},
                     facilityInfo: {},
-                    userMembership: null,
+                    // 会员功能已下线
+                    // userMembership: null,
                     selectedTimeSlot: null,
                     submitting: false,
                     loadingReviews: false,
@@ -341,8 +343,9 @@
                         end_time: '',
                         person_count: 1,
                         contact_phone: '',
-                        remark: '',
-                        is_member_used: false
+                        remark: ''
+                        // 会员功能已下线
+                        // is_member_used: false
                     },
                     bookingRules: {
                         booking_date: [
@@ -377,13 +380,13 @@
                     return this.selectedTimeSlotInfo.price;
                 },
                 
+                // 会员折扣已下线
                 memberDiscount() {
-                    if (!this.bookingForm.is_member_used || !this.userMembership) return 0;
-                    return this.originalPrice * (1 - this.userMembership.discount);
+                    return 0;
                 },
                 
                 finalPrice() {
-                    return this.originalPrice - this.memberDiscount;
+                    return this.originalPrice;
                 },
                 
                 averageRating() {
@@ -396,7 +399,8 @@
                 this.checkAuth();
                 this.loadUserInfo();
                 this.loadFacilityInfo();
-                this.loadUserMembership();
+                // 会员功能已下线
+                // this.loadUserMembership();
                 this.loadReviews();
             },
             methods: {
@@ -436,10 +440,10 @@
                     this.generateTimeSlots();
                 },
                 
-                // 加载用户会员信息
-                loadUserMembership() {
-                    this.userMembership = MockData.getUserMembership(this.userInfo.account_id);
-                },
+                // 加载用户会员信息 - 已下线
+                // loadUserMembership() {
+                //     this.userMembership = MockData.getUserMembership(this.userInfo.account_id);
+                // },
                 
                 // 生成时间段
                 generateTimeSlots() {

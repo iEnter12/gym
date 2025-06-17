@@ -178,42 +178,8 @@ class MockData {
             }
         ];
         
-        // 会员套餐数据
-        const membershipPackages = [
-            {
-                package_id: 1,
-                package_name: '月卡',
-                price: 299.00,
-                duration_days: 30,
-                discount: 0.9,
-                monthly_free_times: 10,
-                description: '每月10次免费使用，其他时间9折优惠',
-                is_active: 1,
-                create_time: '2024-01-01 10:00:00'
-            },
-            {
-                package_id: 2,
-                package_name: '季卡',
-                price: 799.00,
-                duration_days: 90,
-                discount: 0.85,
-                monthly_free_times: 15,
-                description: '每月15次免费使用，其他时间8.5折优惠',
-                is_active: 1,
-                create_time: '2024-01-01 10:00:00'
-            },
-            {
-                package_id: 3,
-                package_name: '年卡',
-                price: 2999.00,
-                duration_days: 365,
-                discount: 0.8,
-                monthly_free_times: 0,
-                description: '全年无限次免费使用',
-                is_active: 1,
-                create_time: '2024-01-01 10:00:00'
-            }
-        ];
+        // 会员套餐数据 - 已删除
+        const membershipPackages = [];
         
         // 公告数据
         const notices = [
@@ -253,10 +219,12 @@ class MockData {
         localStorage.setItem('mock_users', JSON.stringify(users));
         localStorage.setItem('mock_facility_types', JSON.stringify(facilityTypes));
         localStorage.setItem('mock_facilities', JSON.stringify(facilities));
-        localStorage.setItem('mock_membership_packages', JSON.stringify(membershipPackages));
+        // 会员相关数据已下线
+        localStorage.setItem('mock_membership_packages', JSON.stringify([]));
         localStorage.setItem('mock_notices', JSON.stringify(notices));
         localStorage.setItem('mock_bookings', JSON.stringify([]));
         localStorage.setItem('mock_orders', JSON.stringify([]));
+        // 会员相关数据已下线
         localStorage.setItem('mock_memberships', JSON.stringify([]));
         localStorage.setItem('mock_reviews', JSON.stringify([]));
     }
@@ -386,9 +354,9 @@ class MockData {
         return facilities.find(f => f.facility_id == id);
     }
     
-    // 获取会员套餐
+    // 获取会员套餐 - 已下线
     static get membershipPackages() {
-        return this.getData('membership_packages').filter(p => p.is_active === 1);
+        return [];
     }
     
     // 获取哈尔滨天气（模拟）

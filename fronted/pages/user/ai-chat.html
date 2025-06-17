@@ -299,10 +299,9 @@
                     
                     if (q.includes('会员') || q.includes('优惠')) {
                         return {
-                            content: '我们提供多种会员套餐：\n\n**普通会员** - ¥99/月\n• 9折预约优惠\n• 每月2次免费预约\n\n**黄金会员** - ¥199/月\n• 8折预约优惠\n• 每月5次免费预约\n• 优先预约权\n\n**钻石会员** - ¥299/月\n• 7折预约优惠\n• 每月10次免费预约\n• 专属客服服务',
+                            content: '抱歉，目前我们暂未提供会员服务。',
                             actions: [
-                                { id: 'buy_membership', label: '购买会员' },
-                                { id: 'view_benefits', label: '查看详细权益' }
+                                { id: 'view_facilities', label: '查看场馆' }
                             ]
                         };
                     }
@@ -364,7 +363,7 @@
                         case 'view_membership':
                         case 'buy_membership':
                         case 'view_benefits':
-                            this.$message.info('会员功能开发中');
+                            this.$message.info('会员功能已下线');
                             break;
                         case 'check_availability':
                             this.goToPage('facilities');
