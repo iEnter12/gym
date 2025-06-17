@@ -66,12 +66,6 @@
                 <!-- 页面标题和面包屑 -->
                 <div class="page-header">
                     <div class="container">
-                        <div class="breadcrumb">
-                            <el-breadcrumb separator="/">
-                                <el-breadcrumb-item @click.native="goToPage('home')">首页</el-breadcrumb-item>
-                                <el-breadcrumb-item>场馆列表</el-breadcrumb-item>
-                            </el-breadcrumb>
-                        </div>
                         <h1>场馆列表</h1>
                         <p>选择您喜欢的运动场馆，享受专业的运动体验</p>
                     </div>
@@ -356,7 +350,7 @@
                 // 处理URL参数
                 handleUrlParams() {
                     const urlParams = new URLSearchParams(window.location.search);
-                    const typeId = urlParams.get('type_id');
+                    const typeId = urlParams.get('type_id') || urlParams.get('type');
                     const keyword = urlParams.get('keyword');
                     
                     if (typeId) {

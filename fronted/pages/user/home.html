@@ -90,35 +90,8 @@
                 <div class="search-weather-section">
                     <div class="container">
                         <div class="search-weather-container">
-                            <!-- 搜索栏 -->
-                            <div class="search-section">
-                                <h3>快速搜索场馆</h3>
-                                <div class="search-bar">
-                                    <el-input
-                                        v-model="searchKeyword"
-                                        placeholder="输入场馆名称或关键词"
-                                        prefix-icon="el-icon-search"
-                                        size="large"
-                                        @keyup.enter="handleSearch">
-                                        <el-button slot="append" type="primary" @click="handleSearch">
-                                            搜索
-                                        </el-button>
-                                    </el-input>
-                                </div>
-                                <div class="search-suggestions">
-                                    <span class="suggestion-label">热门搜索：</span>
-                                    <el-tag
-                                        v-for="tag in hotSearchTags"
-                                        :key="tag"
-                                        @click="searchKeyword = tag; handleSearch()"
-                                        class="search-tag">
-                                        {{ tag }}
-                                    </el-tag>
-                                </div>
-                            </div>
-
                             <!-- 天气信息 -->
-                            <div class="weather-section">
+                            <div class="weather-section" style="width: 100%;">
                                 <div class="weather-card">
                                     <div class="weather-header">
                                         <i class="el-icon-sunny weather-icon"></i>
@@ -260,7 +233,6 @@
                 return {
                     currentPage: 'home',
                     userInfo: {},
-                    searchKeyword: '',
                     weather: {
                         city: '加载中...',
                         temperature: '--',
@@ -274,7 +246,6 @@
                         { image: '../../assets/images/banner2.jpg', title: '丰富场馆，多样选择', description: '篮球、羽毛球、游泳…总有适合你的运动空间。' },
                         { image: '../../assets/images/banner3.jpg', title: '会员特权，尊享优惠', description: '加入会员，体验更多专属福利。' }
                     ],
-                    hotSearchTags: ['篮球场', '羽毛球馆', '游泳池', '健身房'],
                     facilityTypes: [],
                     popularFacilities: [],
                     notices: []
@@ -329,35 +300,19 @@
                     this.notices = MockData.notices;
                 },
                 
-                // 处理搜索
-                handleSearch() {
-                    if (!this.searchKeyword.trim()) {
-                        this.$message.warning('请输入搜索关键词');
-                        return;
-                    }
-                    
-                    // 跳转到场馆列表页面并传递搜索参数
-                    this.currentPage = 'facilities';
-                    // 这里应该传递搜索参数到场馆列表页面
-                    this.$message.success(`搜索"${this.searchKeyword}"的结果`);
-                },
-                
                 // 跳转到场馆列表
                 goToFacilities() {
-                    this.currentPage = 'facilities';
+                    window.location.href = 'facilities.html';
                 },
                 
                 // 按类型跳转到场馆列表
                 goToFacilitiesByType(typeId) {
-                    this.currentPage = 'facilities';
-                    // 这里应该传递类型参数到场馆列表页面
-                    this.$message.success(`查看${this.getFacilityTypeName(typeId)}场馆`);
+                    window.location.href = `facilities.html?type=${typeId}`;
                 },
                 
                 // 跳转到场馆详情
                 goToFacilityDetail(facilityId) {
-                    // 这里应该跳转到场馆详情页面
-                    this.$message.success(`查看场馆详情：${facilityId}`);
+                    window.location.href = `booking.html?facility_id=${facilityId}`;
                 },
                 
                 // 获取场馆类型名称
