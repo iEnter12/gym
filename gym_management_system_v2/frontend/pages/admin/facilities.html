@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>场馆管理 - 体育场馆预约系统</title>
+    <link rel="stylesheet" href="../../assets/css/common.css">
+    <link rel="stylesheet" href="../../assets/css/admin.css">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/dayjs@1.11.10/dayjs.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- 侧边栏 -->
+        <div class="admin-sidebar" :class="{ collapsed: sidebarCollapsed }">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="el-icon-trophy"></i>
+                    <span v-if="!sidebarCollapsed">管理后台</span>
+                </div>
+                <el-button
+                    type="text"
+                    @click="sidebarCollapsed = !sidebarCollapsed"
+                    class="collapse-btn">
+                    <i :class="sidebarCollapsed ? 'el-icon-s-unfold' : 'el-icon-s-fold'"></i>
+                </el-button>
+            </div>
+            
+            <div class="sidebar-menu">
+                <el-menu
+                    :default-active="activeMenu"
+                    :collapse="sidebarCollapsed"
+                    background-color="#2c3e50"
+                    text-color="#ecf0f1"
+                    active-text-color="#3498db">
+                    
+                    <el-menu-item index="dashboard" @click="goToPage('dashboard')">
+                        <i class="el-icon-data-analysis"></i>
+                        <span slot="title">数据仪表盘</span>
+                    </el-menu-item>
+                    
+                    <el-menu-item index="facilities" @click="goToPage('facilities')">
+                        <i class="el-icon-office-building"></i>
+                        <span slot="title">场馆管理</span>
+                    </el-menu-item>
+                    
+                    <el-menu-item index="bookings" @click="goToPage('bookings')">
+                        <i class="el-icon-tickets"></i>
+                        <span slot="title">预约管理</span>
+                    </el-menu-item>
+                </el-menu>
+            </div>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <div class="admin-main" :class="{ expanded: sidebarCollapsed }">
+            <!-- 顶部导航 -->
+            <div class="admin-header">
+                <div class="header-left">
+                    <h1>场馆管理</h1>
+                    <span class="page-desc">管理所有体育场馆信息</span>
+                </div>
+                
+                <div class="header-right">
+                    <el-dropdown @command="handleUserCommand">
+                        <span class="user-dropdown">
+                            <el-avatar :size="32" :src="adminInfo.avatar">
+                                <i class="el-icon-user-solid"></i>
+                            </el-avatar>
+                            <span class="admin-name">{{ adminInfo.username || '管理员' }}</span>
+                            <i class="el-icon-arrow-down"></i>
+                        </span>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </div>
+            </div>
+
+            <!-- 场馆管理内容 -->
+            <div class="dashboard-content">
+                <!-- 统计卡片 -->
+                <div class="metrics-section">
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-icon" style="background: #3498db;">
+                                <i class="el-icon-office-building"></i>
+                            </div>
+                            <div class="metric-info">
+                                <div class="metric-value">{{ facilityStats.total }}</div>
+                                <div class="metric-label">总场馆数</div>
+                                <div class="metric-change neutral">
+                                    <i class="el-icon-minus"></i>
+                                    0%
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-icon" style="background: #2ecc71;">
+                                <i class="el-icon-check"></i>
+                            </div>
+                            <div class="metric-info">
+                                <div class="metric-value">{{ facilityStats.active }}</div>
+                                <div class="metric-label">正常运营</div>
+                                <div class="metric-change positive">
+                                    <i class="el-icon-arrow-up"></i>
+                                    +2%
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-icon" style="background: #f39c12;">
+                                <i class="el-icon-warning"></i>
+                            </div>
+                            <div class="metric-info">
+                                <div class="metric-value">{{ facilityStats.maintenance }}</div>
+                                <div class="metric-label">维护中</div>
+                                <div class="metric-change negative">
+                                    <i class="el-icon-arrow-down"></i>
+                                    -1%
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-icon" style="background: #e74c3c;">
+                                <i class="el-icon-close"></i>
+                            </div>
+                            <div class="metric-info">
+                                <div class="metric-value">{{ facilityStats.inactive }}</div>
+                                <div class="metric-label">暂停使用</div>
+                                <div class="metric-change neutral">
+                                    <i class="el-icon-minus"></i>
+                                    0%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 场馆列表 -->
+                <div class="admin-table">
+                    <div class="table-header">
+                        <h3>场馆列表</h3>
+                        <div class="table-actions">
+                            <el-input
+                                v-model="searchKeyword"
+                                placeholder="搜索场馆名称或类型"
+                                prefix-icon="el-icon-search"
+                                style="width: 250px; margin-right: 15px;"
+                                @input="handleSearch">
+                            </el-input>
+                            <el-select
+                                v-model="statusFilter"
+                                placeholder="状态筛选"
+                                style="width: 120px; margin-right: 15px;"
+                                @change="handleFilter">
+                                <el-option label="全部" value=""></el-option>
+                                <el-option label="正常" :value="1"></el-option>
+                                <el-option label="维护中" :value="2"></el-option>
+                                <el-option label="暂停" :value="3"></el-option>
+                            </el-select>
+                            <el-button type="primary" @click="handleAdd">
+                                <i class="el-icon-plus"></i> 添加场馆
+                            </el-button>
+                        </div>
+                    </div>
+
+                    <el-table
+                        :data="facilities"
+                        style="width: 100%"
+                        v-loading="loading">
+                        
+                        <el-table-column prop="id" label="ID" width="80"></el-table-column>
+                        
+                        <el-table-column label="场馆图片" width="100">
+                            <template slot-scope="scope">
+                                <el-image
+                                    :src="scope.row.image_url || getDefaultImageByType(scope.row.type)"
+                                    style="width: 60px; height: 40px; border-radius: 5px;"
+                                    fit="cover">
+                                    <div slot="error" class="image-slot">
+                                        <i class="el-icon-picture-outline"></i>
+                                    </div>
+                                </el-image>
+                            </template>
+                        </el-table-column>
+                        
+                        <el-table-column prop="facility_name" label="场馆名称" min-width="150"></el-table-column>
+                        
+                        <el-table-column prop="type" label="类型" width="100">
+                            <template slot-scope="scope">
+                                <el-tag :type="getTypeTagType(scope.row.type)">
+                                    {{ getTypeText(scope.row.type) }}
+                                </el-tag>
+                            </template>
+                        </el-table-column>
+                        
+                        <el-table-column prop="location" label="位置" min-width="120"></el-table-column>
+                        
+                        <el-table-column prop="capacity" label="容量" width="80">
+                            <template slot-scope="scope">
+                                {{ scope.row.capacity }}人
+                            </template>
+                        </el-table-column>
+                        
+                        <el-table-column prop="area" label="面积" width="80">
+                            <template slot-scope="scope">
+                                {{ scope.row.area }}㎡
+                            </template>
+                        </el-table-column>
+                        
+                        <el-table-column prop="price" label="价格" width="100">
+                            <template slot-scope="scope">
+                                ¥{{ scope.row.price }}/小时
+                            </template>
+                        </el-table-column>
+                        
+                        <el-table-column label="状态" width="120">
+                            <template slot-scope="scope">
+                                <el-tag :type="getStatusType(scope.row.status)">
+                                    {{ getStatusText(scope.row.status) }}
+                                </el-tag>
+                            </template>
+                        </el-table-column>
+                        
+                        <el-table-column label="操作" width="150" fixed="right">
+                            <template slot-scope="scope">
+                                <el-button
+                                    size="mini"
+                                    type="primary"
+                                    @click="editFacility(scope.row)">
+                                    编辑
+                                </el-button>
+                                <el-button
+                                    size="mini"
+                                    type="danger"
+                                    @click="deleteFacility(scope.row)">
+                                    删除
+                                </el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+
+                    <!-- 分页 -->
+                    <div class="pagination-container">
+                        <el-pagination
+                            @size-change="handleSizeChange"
+                            @current-change="handlePageChange"
+                            :current-page="currentPage"
+                            :page-sizes="[10, 20, 50, 100]"
+                            :page-size="pageSize"
+                            layout="total, sizes, prev, pager, next, jumper"
+                            :total="totalFacilities">
+                        </el-pagination>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 添加/编辑场馆对话框 -->
+        <el-dialog
+            :title="dialogMode === 'add' ? '添加场馆' : '编辑场馆'"
+            :visible.sync="dialogVisible"
+            width="600px"
+            @close="resetForm">
+            
+            <el-form
+                :model="facilityForm"
+                :rules="facilityFormRules"
+                ref="facilityForm"
+                label-width="100px">
+                
+                <el-form-item label="场馆名称" prop="facility_name">
+                    <el-input v-model="facilityForm.facility_name" placeholder="请输入场馆名称"></el-input>
+                </el-form-item>
+                
+                <el-form-item label="场馆类型" prop="type">
+                    <el-select v-model="facilityForm.type" placeholder="请选择场馆类型" @change="handleTypeChange">
+                        <el-option
+                            v-for="type in facilityTypes"
+                            :key="type.type_id"
+                            :label="type.type_name"
+                            :value="type.type_id">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+                
+                <el-form-item label="场馆位置" prop="location">
+                    <el-input v-model="facilityForm.location" placeholder="请输入场馆位置"></el-input>
+                </el-form-item>
+                
+                <el-form-item label="容纳人数" prop="capacity">
+                    <el-input-number v-model="facilityForm.capacity" :min="1" :max="1000"></el-input-number>
+                </el-form-item>
+                
+                <el-form-item label="场地面积" prop="area">
+                    <el-input-number v-model="facilityForm.area" :min="1" :max="10000" :precision="2"></el-input-number>
+                </el-form-item>
+                
+                <el-form-item label="场地价格" prop="price">
+                    <el-input-number v-model="facilityForm.price" :min="0" :max="10000" :precision="2"></el-input-number>
+                </el-form-item>
+                
+                <el-form-item label="场馆描述" prop="description">
+                    <el-input type="textarea" v-model="facilityForm.description" rows="3" placeholder="请输入场馆描述"></el-input>
+                </el-form-item>
+                
+                <el-form-item label="营业时间" prop="opening_hours">
+                    <el-input v-model="facilityForm.opening_hours" placeholder="例如：06:00-22:00"></el-input>
+                </el-form-item>
+                
+                <el-form-item label="可提前预约天数" prop="advance_booking_days">
+                    <el-input-number v-model="facilityForm.advance_booking_days" :min="1" :max="30"></el-input-number>
+                </el-form-item>
+                
+                <el-form-item label="最小预约时长" prop="min_booking_duration">
+                    <el-input-number v-model="facilityForm.min_booking_duration" :min="1" :max="24"></el-input-number>
+                </el-form-item>
+                
+                <el-form-item label="最大预约时长" prop="max_booking_duration">
+                    <el-input-number v-model="facilityForm.max_booking_duration" :min="1" :max="24"></el-input-number>
+                </el-form-item>
+                
+                <el-form-item label="场馆状态" prop="status">
+                    <el-radio-group v-model="facilityForm.status">
+                        <el-radio :label="1">可用</el-radio>
+                        <el-radio :label="2">维护中</el-radio>
+                        <el-radio :label="3">已关闭</el-radio>
+                    </el-radio-group>
+                </el-form-item>
+            </el-form>
+            
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogVisible = false">取消</el-button>
+                <el-button type="primary" @click="submitForm" :loading="saving">
+                    {{ dialogMode === 'add' ? '添加' : '保存' }}
+                </el-button>
+            </div>
+        </el-dialog>
+
+        <!-- 查看场馆详情对话框 -->
+        <el-dialog
+            title="场馆详情"
+            :visible.sync="viewDialogVisible"
+            width="500px">
+            
+            <div v-if="selectedFacility" class="facility-detail">
+                <div class="facility-detail-image">
+                    <label>场馆图片：</label>
+                    <el-image
+                        :src="selectedFacility.image_url || getDefaultImageByType(selectedFacility.type)"
+                        style="width: 200px; height: 120px; border-radius: 8px;"
+                        fit="cover">
+                        <div slot="error" class="image-slot">
+                            <i class="el-icon-picture-outline"></i>
+                        </div>
+                    </el-image>
+                </div>
+                <div class="detail-item">
+                    <label>场馆名称：</label>
+                    <span>{{ selectedFacility.name }}</span>
+                </div>
+                <div class="detail-item">
+                    <label>场馆类型：</label>
+                    <el-tag :type="getTypeTagType(selectedFacility.type)">
+                        {{ getTypeText(selectedFacility.type) }}
+                    </el-tag>
+                </div>
+                <div class="detail-item">
+                    <label>位置：</label>
+                    <span>{{ selectedFacility.location }}</span>
+                </div>
+                <div class="detail-item">
+                    <label>容量：</label>
+                    <span>{{ selectedFacility.capacity }}人</span>
+                </div>
+                <div class="detail-item">
+                    <label>面积：</label>
+                    <span>{{ selectedFacility.area }}㎡</span>
+                </div>
+                <div class="detail-item">
+                    <label>价格：</label>
+                    <span>¥{{ selectedFacility.price }}/小时</span>
+                </div>
+                <div class="detail-item">
+                    <label>状态：</label>
+                    <el-tag :type="getStatusTagType(selectedFacility.status)">
+                        {{ getStatusText(selectedFacility.status) }}
+                    </el-tag>
+                </div>
+                <div class="detail-item">
+                    <label>描述：</label>
+                    <p>{{ selectedFacility.description }}</p>
+                </div>
+                <div class="detail-item">
+                    <label>创建时间：</label>
+                    <span>{{ formatTime(selectedFacility.create_time) }}</span>
+                </div>
+            </div>
+        </el-dialog>
+    </div>
+
+    <script src="../../utils/api.js"></script>
+    <script src="../../utils/auth.js"></script>
+    <script src="../../utils/mock.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    adminInfo: {
+                        username: '',
+                        avatar: '',
+                        role: ''
+                    },
+                    sidebarCollapsed: false,
+                    activeMenu: 'facilities',
+                    loading: false,
+                    saving: false,
+                    searchKeyword: '',
+                    statusFilter: '',
+                    currentPage: 1,
+                    pageSize: 10,
+                    totalFacilities: 0,
+                    facilities: [],
+                    filteredFacilities: [],
+                    facilityStats: {
+                        total: 0,
+                        active: 0,
+                        maintenance: 0,
+                        inactive: 0
+                    },
+                    dialogVisible: false,
+                    viewDialogVisible: false,
+                    dialogMode: 'add',
+                    selectedFacility: null,
+                    facilityTypes: [],
+                    facilityForm: {
+                        facility_name: '',
+                        type: '',
+                        location: '',
+                        capacity: '',
+                        area: '',
+                        price: '',
+                        description: '',
+                        status: 1,
+                        opening_hours: '06:00-22:00',
+                        advance_booking_days: 7,
+                        min_booking_duration: 1,
+                        max_booking_duration: 4,
+                        sort_order: 0,
+                        image_url: ''
+                    },
+                    facilityFormRules: {
+                        facility_name: [
+                            { required: true, message: '请输入场馆名称', trigger: 'blur' }
+                        ],
+                        type: [
+                            { required: true, message: '请选择场馆类型', trigger: 'change' }
+                        ],
+                        location: [
+                            { required: true, message: '请输入场馆位置', trigger: 'blur' }
+                        ],
+                        capacity: [
+                            { required: true, message: '请输入容纳人数', trigger: 'blur' }
+                        ],
+                        area: [
+                            { required: true, message: '请输入场地面积', trigger: 'blur' }
+                        ],
+                        price: [
+                            { required: true, message: '请输入场地价格', trigger: 'blur' }
+                        ]
+                    },
+                    statusOptions: [
+                        { value: 1, label: '可用', type: 'success' },
+                        { value: 2, label: '维护中', type: 'warning' },
+                        { value: 3, label: '已关闭', type: 'danger' }
+                    ]
+                };
+            },
+            computed: {
+                queryParams() {
+                    const params = {
+                        page: this.currentPage,
+                        page_size: this.pageSize
+                    };
+                    
+                    if (this.searchKeyword) {
+                        params.keyword = this.searchKeyword;
+                    }
+                    
+                    if (this.statusFilter) {
+                        params.status = this.statusFilter;
+                    }
+                    
+                    return params;
+                }
+            },
+            mounted() {
+                this.checkAuth();
+                this.loadFacilityTypes();
+            },
+            methods: {
+                // 检查登录状态
+                checkAuth() {
+                    if (!Auth.isLoggedIn()) {
+                        window.location.href = '/index.html';
+                        return;
+                    }
+                    this.loadAdminInfo();
+                    this.loadFacilities();
+                },
+                
+                // 加载管理员信息
+                loadAdminInfo() {
+                    api.auth.getUserInfo()
+                        .then(response => {
+                            if (response.success) {
+                                this.adminInfo = response.data;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('获取管理员信息失败:', error);
+                            // 如果获取用户信息失败，可能是token过期，跳转到登录页
+                            if (error.response && error.response.status === 401) {
+                                Auth.logout();
+                                window.location.href = '/index.html';
+                            }
+                        });
+                },
+                
+                // 加载场馆列表
+                loadFacilities() {
+                    this.loading = true;
+                    console.log('开始加载场馆列表，参数:', this.queryParams);
+                    
+                    api.facilities.getList(this.queryParams)
+                        .then(response => {
+                            console.log('场馆列表API响应:', response);
+                            // 直接适配 DRF 分页格式
+                            this.facilities = response.results || response.data?.results || response.data || [];
+                            this.totalFacilities = response.count || this.facilities.length;
+                            this.updateFacilityStats();
+                            this.loading = false;
+                        })
+                        .catch(error => {
+                            console.error('获取场馆列表失败:', error);
+                            console.error('错误详情:', error.response || error);
+                            this.loading = false;
+                        });
+                },
+                
+                // 更新场馆统计信息
+                updateFacilityStats() {
+                    this.facilityStats = {
+                        total: this.facilities.length,
+                        active: this.facilities.filter(f => f.status === 1).length,
+                        maintenance: this.facilities.filter(f => f.status === 2).length,
+                        inactive: this.facilities.filter(f => f.status === 3).length
+                    };
+                },
+                
+                // 获取状态类型
+                getStatusType(status) {
+                    const option = this.statusOptions.find(opt => opt.value === status);
+                    return option ? option.type : 'info';
+                },
+                
+                // 获取状态文本
+                getStatusText(status) {
+                    const option = this.statusOptions.find(opt => opt.value === status);
+                    return option ? option.label : '未知';
+                },
+                
+                // 获取状态标签类型
+                getStatusTagType(status) {
+                    const typeMap = {
+                        1: 'success',
+                        2: 'warning',
+                        3: 'danger'
+                    };
+                    return typeMap[status] || 'info';
+                },
+                
+                // 获取类型标签类型
+                getTypeTagType(type) {
+                    const typeMap = {
+                        1: 'primary',
+                        2: 'success',
+                        3: 'warning',
+                        4: 'info'
+                    };
+                    return typeMap[type] || 'info';
+                },
+                
+                // 获取类型文本
+                getTypeText(type) {
+                    const typeMap = {
+                        1: '篮球场',
+                        2: '羽毛球场',
+                        3: '网球场',
+                        4: '游泳池'
+                    };
+                    return typeMap[type] || '其他';
+                },
+                
+                // 处理搜索
+                handleSearch() {
+                    this.currentPage = 1;
+                    this.loadFacilities();
+                },
+                
+                // 处理筛选
+                handleFilter() {
+                    this.currentPage = 1;
+                    this.loadFacilities();
+                },
+                
+                // 处理分页
+                handlePageChange(page) {
+                    this.currentPage = page;
+                    this.loadFacilities();
+                },
+                
+                // 处理每页条数变化
+                handleSizeChange(size) {
+                    this.pageSize = size;
+                    this.currentPage = 1;
+                    this.loadFacilities();
+                },
+                
+                // 打开新增场馆对话框
+                handleAdd() {
+                    this.dialogMode = 'add';
+                    this.facilityForm = {
+                        facility_name: '',
+                        type: '',
+                        location: '',
+                        capacity: '',
+                        area: '',
+                        price: '',
+                        description: '',
+                        status: 1,
+                        opening_hours: '06:00-22:00',
+                        advance_booking_days: 7,
+                        min_booking_duration: 1,
+                        max_booking_duration: 4,
+                        sort_order: 0,
+                        image_url: this.getDefaultImageByType('')
+                    };
+                    this.dialogVisible = true;
+                    this.$nextTick(() => {
+                        this.$refs.facilityForm.clearValidate();
+                    });
+                },
+                
+                // 编辑场馆
+                editFacility(row) {
+                    this.dialogMode = 'edit';
+                    this.selectedFacility = row;
+                    this.facilityForm = {
+                        facility_id: row.facility_id,
+                        facility_name: row.facility_name,
+                        type: row.type,
+                        description: row.description,
+                        price: row.price,
+                        status: row.status,
+                        image_url: row.image_url || this.getDefaultImageByType(row.type),
+                        min_booking_duration: row.min_booking_duration,
+                        max_booking_duration: row.max_booking_duration,
+                        sort_order: row.sort_order,
+                        location: row.location,
+                        capacity: row.capacity,
+                        area: row.area,
+                        opening_hours: row.opening_hours,
+                        advance_booking_days: row.advance_booking_days
+                    };
+                    this.dialogVisible = true;
+                    if (this.$refs.facilityForm) {
+                        this.$refs.facilityForm.clearValidate();
+                    }
+                },
+                
+                // 查看场馆详情
+                handleView(row) {
+                    this.selectedFacility = row;
+                    this.viewDialogVisible = true;
+                },
+                
+                // 删除场馆
+                deleteFacility(row) {
+                    this.$confirm('确认删除该场馆吗？', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        api.facilities.delete(row.facility_id).then(response => {
+                            this.$message.success('删除成功');
+                            this.loadFacilities();
+                        }).catch(error => {
+                            console.error('删除失败:', error);
+                            this.$message.error('删除失败');
+                        });
+                    }).catch(() => {});
+                },
+                
+                // 提交表单
+                submitForm() {
+                    this.$refs.facilityForm.validate((valid) => {
+                        if (valid) {
+                            const data = {
+                                ...this.facilityForm,
+                                price: parseFloat(this.facilityForm.price),
+                                image_url: this.facilityForm.image_url || this.getDefaultImageByType(this.facilityForm.type),
+                                status: parseInt(this.facilityForm.status),
+                                capacity: parseInt(this.facilityForm.capacity),
+                                area: parseFloat(this.facilityForm.area),
+                                advance_booking_days: parseInt(this.facilityForm.advance_booking_days)
+                            };
+                            
+                            const request = this.facilityForm.facility_id
+                                ? api.facilities.update(this.facilityForm.facility_id, data)
+                                : api.facilities.create(data);
+                            
+                            request.then(response => {
+                                this.$message.success(this.facilityForm.facility_id ? '更新成功' : '添加成功');
+                                this.dialogVisible = false;
+                                this.loadFacilities();
+                            }).catch(error => {
+                                console.error(this.facilityForm.facility_id ? '更新失败:' : '添加失败:', error);
+                                this.$message.error(this.facilityForm.facility_id ? '更新失败' : '添加失败');
+                            });
+                        }
+                    });
+                },
+                
+                // 处理用户下拉菜单命令
+                handleUserCommand(command) {
+                    if (command === 'logout') {
+                        Auth.logout();
+                        window.location.href = '/index.html';
+                    }
+                },
+                
+                // 重置表单
+                resetForm() {
+                    this.facilityForm = {
+                        facility_name: '',
+                        type: '',
+                        location: '',
+                        capacity: '',
+                        area: '',
+                        price: '',
+                        description: '',
+                        status: 1,
+                        opening_hours: '06:00-22:00',
+                        advance_booking_days: 7,
+                        min_booking_duration: 1,
+                        max_booking_duration: 4,
+                        sort_order: 0,
+                        image_url: this.getDefaultImageByType('')
+                    };
+                    if (this.$refs.facilityForm) {
+                        this.$refs.facilityForm.resetFields();
+                    }
+                },
+                
+                // 格式化时间
+                formatTime(timestamp) {
+                    return dayjs(timestamp).format('YYYY-MM-DD HH:mm:ss');
+                },
+                
+                // 页面跳转
+                goToPage(page) {
+                    this.activeMenu = page;
+                    const pageMap = {
+                        dashboard: 'dashboard.html',
+                        facilities: 'facilities.html',
+                        bookings: 'bookings.html',
+                        reports: 'reports.html'
+                    };
+                    if (pageMap[page] && page !== 'facilities') {
+                        window.location.href = pageMap[page];
+                    }
+                },
+                
+                // 加载场馆类型
+                loadFacilityTypes() {
+                    api.facilities.getTypes()
+                        .then(response => {
+                            if (response.success && Array.isArray(response.data)) {
+                                this.facilityTypes = response.data;
+                                console.log('加载的场馆类型数据:', this.facilityTypes);
+                            } else {
+                                console.error('获取场馆类型失败:', response);
+                                this.facilityTypes = [];
+                            }
+                        })
+                        .catch(error => {
+                            console.error('获取场馆类型失败:', error);
+                            this.facilityTypes = [];
+                        });
+                },
+                
+                // 根据场馆类型获取默认图片
+                getDefaultImageByType(type) {
+                    const imageMap = {
+                        'basketball': 'https://images.unsplash.com/photo-1546519638-68e109acd27b?w=800&auto=format&fit=crop',
+                        'football': 'https://images.unsplash.com/photo-1508098682722-e99c643e5e76?w=800&auto=format&fit=crop',
+                        'tennis': 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?w=800&auto=format&fit=crop',
+                        'badminton': 'https://images.unsplash.com/photo-1610555356070-d0efb6505f81?w=800&auto=format&fit=crop',
+                        'swimming': 'https://images.unsplash.com/photo-1560089000-7433a4ebbd64?w=800&auto=format&fit=crop',
+                        'gym': 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop',
+                        'volleyball': 'https://images.unsplash.com/photo-1592659762303-90081d34b277?w=800&auto=format&fit=crop',
+                        'table_tennis': 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=800&auto=format&fit=crop',
+                        'default': 'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=800&auto=format&fit=crop'
+                    };
+                    return imageMap[type] || imageMap.default;
+                },
+
+                // 监听场馆类型变化
+                handleTypeChange(type) {
+                    if (!this.facilityForm.image_url || this.facilityForm.image_url === this.getDefaultImageByType('')) {
+                        this.facilityForm.image_url = this.getDefaultImageByType(type);
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+

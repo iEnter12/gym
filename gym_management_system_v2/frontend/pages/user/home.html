@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首页 - 体育场馆预约系统</title>
+    <link rel="stylesheet" href="../../assets/css/common.css">
+    <link rel="stylesheet" href="../../assets/css/user.css">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/dayjs@1.11.10/dayjs.min.js"></script>
+    <script src="https://unpkg.com/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- 顶部导航 -->
+        <div class="header">
+            <div class="header-container">
+                <div class="logo">
+                    <i class="el-icon-trophy"></i>
+                    <span>体育场馆预约系统</span>
+                </div>
+                
+                <div class="nav-menu">
+                    <div class="nav-item active">
+                        <i class="el-icon-house"></i>
+                        首页
+                    </div>
+                    <div class="nav-item" @click="goToPage('facilities.html')">
+                        <i class="el-icon-office-building"></i>
+                        场馆列表
+                    </div>
+                    <div class="nav-item" @click="goToPage('profile.html')">
+                        <i class="el-icon-user"></i>
+                        个人中心
+                    </div>
+                    <div class="nav-item" @click="goToPage('ai-chat.html')">
+                        <i class="el-icon-chat-dot-round"></i>
+                        AI助手
+                    </div>
+                </div>
+                
+                <div class="user-info">
+                    <el-dropdown @command="handleUserCommand">
+                        <span class="user-dropdown">
+                            <el-avatar :src="userInfo.avatar" :size="32">
+                                {{ userInfo.real_name ? userInfo.real_name.charAt(0) : 'U' }}
+                            </el-avatar>
+                            <span class="username">{{ userInfo.real_name || userInfo.username }}</span>
+                            <i class="el-icon-arrow-down"></i>
+                        </span>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <div class="main-content">
+            <!-- 首页内容 -->
+            <div v-if="currentPage === 'home'" class="home-page">
+                <!-- 轮播图区域 -->
+                <div class="hero-section">
+                    <el-carousel height="400px" :autoplay="true" :interval="5000">
+                        <el-carousel-item v-for="(item, index) in carouselItems" :key="index">
+                            <div class="carousel-item" :style="{ backgroundImage: `url(${item.image})` }">
+                                <div class="carousel-content">
+                                    <h2>{{ item.title }}</h2>
+                                    <p>{{ item.description }}</p>
+                                    <el-button type="primary" size="large" @click="goToFacilities">
+                                        立即预约
+                                    </el-button>
+                                </div>
+                            </div>
+                        </el-carousel-item>
+                    </el-carousel>
+                </div>
+
+                <!-- 搜索和天气区域 -->
+                <div class="search-weather-section">
+                    <div class="container">
+                        <div class="search-weather-container">
+                            <!-- 天气信息 -->
+                            <div class="weather-section" style="width: 100%;">
+                                <div class="weather-card">
+                                    <div class="weather-header">
+                                        <i class="el-icon-sunny weather-icon"></i>
+                                        <div class="weather-info">
+                                            <div class="city">{{ weather.city }}</div>
+                                            <div class="temp">{{ weather.temperature }}°C</div>
+                                        </div>
+                                    </div>
+                                    <div class="weather-details">
+                                        <div class="weather-item">
+                                            <span class="label">天气：</span>
+                                            <span class="value">{{ weather.weather }}</span>
+                                        </div>
+                                        <div class="weather-item">
+                                            <span class="label">湿度：</span>
+                                            <span class="value">{{ weather.humidity }}%</span>
+                                        </div>
+                                        <div class="weather-item">
+                                            <span class="label">风速：</span>
+                                            <span class="value">{{ weather.windSpeed }}km/h</span>
+                                        </div>
+                                    </div>
+                                    <div class="weather-update">
+                                        更新时间：{{ formatTime(weather.updateTime) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 热门场馆推荐 -->
+                <div class="popular-facilities-section">
+                    <div class="container">
+                        <div class="section-header">
+                            <h3>热门场馆推荐</h3>
+                            <el-button type="text" @click="goToFacilities">查看更多 ></el-button>
+                        </div>
+                        <div class="facilities-grid">
+                            <div
+                                v-for="facility in popularFacilities"
+                                :key="facility.facility_id"
+                                class="facility-card"
+                                @click="goToFacilityDetail(facility.facility_id)">
+                                <div class="facility-image">
+                                    <img :src="facility.image_url" :alt="facility.facility_name">
+                                    <div class="facility-type">{{ getFacilityTypeName(facility.type_id) }}</div>
+                                </div>
+                                <div class="facility-info">
+                                    <h4>{{ facility.facility_name }}</h4>
+                                    <p class="facility-location">
+                                        <i class="el-icon-location"></i>
+                                        {{ facility.location }}
+                                    </p>
+                                    <div class="facility-meta">
+                                        <span class="capacity">
+                                            <i class="el-icon-user"></i>
+                                            {{ facility.capacity }}人
+                                        </span>
+                                        <span class="price">
+                                            ¥{{ facility.price }}/小时
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 场馆类型快捷入口 -->
+                <!-- 已删除场馆类型部分 -->
+
+                <!-- 最新公告 -->
+                <!-- 已删除公告部分 -->
+            </div>
+
+            <!-- 其他页面内容占位 -->
+            <div v-else class="page-placeholder">
+                <div class="container">
+                    <h2>{{ getPageTitle() }}</h2>
+                    <p>此页面正在开发中...</p>
+                    <el-button type="primary" @click="currentPage = 'home'">返回首页</el-button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../utils/api.js"></script>
+    <script src="../../utils/auth.js"></script>
+    <script src="../../utils/mock.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    currentPage: 'home',
+                    userInfo: {},
+                    weather: {
+                        city: '加载中...',
+                        temperature: '--',
+                        weather: '晴',
+                        humidity: '--',
+                        windSpeed: '--',
+                        updateTime: new Date()
+                    },
+                    carouselItems: [
+                        { image: '../../assets/images/carousel-basketball.jpg', title: '智能预约，便捷运动', description: '一键预约您心仪的场馆，开启健康生活。' },
+                        { image: '../../assets/images/carousel-badminton.jpg', title: '丰富场馆，多样选择', description: '篮球、羽毛球、游泳…总有适合你的运动空间。' },
+                        { image: '../../assets/images/carousel-swimming.jpg', title: '会员特权，尊享优惠', description: '加入会员，体验更多专属福利。' }
+                    ],
+                    facilityTypes: [],
+                    popularFacilities: [],
+                    notices: []
+                }
+            },
+            mounted() {
+                this.checkAuth();
+                this.loadUserInfo();
+                this.loadData();
+            },
+            methods: {
+                // 检查登录状态
+                checkAuth() {
+                    if (!Auth.requireUser()) {
+                        return;
+                    }
+                },
+                
+                // 加载用户信息
+                loadUserInfo() {
+                    this.userInfo = Auth.getUserInfo() || {};
+                },
+                
+                // 加载页面数据
+                loadData() {
+                    this.loadWeather();
+                    // 已移除加载场馆类型
+                    this.loadPopularFacilities();
+                    // 已移除加载公告
+                },
+                
+                // 加载天气信息
+                loadWeather() {
+                    api.weather.getHarbinWeather()
+                        .then(response => {
+                            if (response.success) {
+                                this.weather = response.data;
+                            } else {
+                                console.error('获取天气信息失败:', response.message);
+                                this.weather = {
+                                    city: '哈尔滨',
+                                    temperature: '--',
+                                    weather: '未知',
+                                    humidity: '--',
+                                    windSpeed: '--',
+                                    updateTime: new Date()
+                                };
+                            }
+                        })
+                        .catch(error => {
+                            console.error('获取天气信息失败:', error);
+                            this.weather = {
+                                city: '哈尔滨',
+                                temperature: '--',
+                                weather: '未知',
+                                humidity: '--',
+                                windSpeed: '--',
+                                updateTime: new Date()
+                            };
+                        });
+                },
+                
+                // 加载场馆类型
+                loadFacilityTypes() {
+                    api.facilities.getTypes()
+                        .then(response => {
+                            if (response.success && Array.isArray(response.data)) {
+                                // 确保每个类型都有正确的图标类名
+                                this.facilityTypes = response.data.map(type => {
+                                    // 处理图标格式
+                                    if (type.icon) {
+                                        // 如果后端返回的icon不是以el-icon开头，则添加默认前缀
+                                        if (!type.icon.startsWith('el-icon-')) {
+                                            type.icon = 'el-icon-' + type.icon;
+                                        }
+                                    } else {
+                                        // 如果没有icon，设置一个默认图标
+                                        type.icon = 'el-icon-data-analysis';
+                                    }
+                                    return type;
+                                });
+                                console.log('加载场馆类型成功:', this.facilityTypes);
+                            } else {
+                                console.error('获取场馆类型失败:', response);
+                                this.facilityTypes = [];
+                            }
+                        })
+                        .catch(error => {
+                            console.error('获取场馆类型失败:', error);
+                            // 加载失败时，可以设置一些默认数据或显示错误提示
+                        });
+                },
+                
+                // 加载热门场馆
+                loadPopularFacilities() {
+                    api.facilities.getList({ limit: 6 })
+                        .then(response => {
+                            if (response.success) {
+                                this.popularFacilities = response.data;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('获取热门场馆失败:', error);
+                        });
+                },
+                
+                // 加载公告
+                loadNotices() {
+                    api.notices.getActive({ limit: 5 })
+                        .then(response => {
+                            if (response.success) {
+                                this.notices = response.data;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('获取公告失败:', error);
+                        });
+                },
+                
+                // 跳转到场馆列表
+                goToFacilities() {
+                    window.location.href = 'facilities.html';
+                },
+                
+                // 按类型跳转到场馆列表
+                goToFacilitiesByType(typeId) {
+                    window.location.href = `facilities.html?type=${typeId}`;
+                },
+                
+                // 跳转到场馆详情
+                goToFacilityDetail(facilityId) {
+                    window.location.href = `booking.html?facility_id=${facilityId}`;
+                },
+                
+                // 获取场馆类型名称
+                getFacilityTypeName(typeId) {
+                    const type = this.facilityTypes.find(t => t.type_id === typeId);
+                    return type ? type.type_name : '未知类型';
+                },
+                
+                // 获取公告类型文本
+                getNoticeTypeText(type) {
+                    const typeMap = {
+                        1: '系统公告',
+                        2: '营业时间',
+                        3: '活动通知'
+                    };
+                    return typeMap[type] || '公告';
+                },
+                
+                // 获取公告类型颜色
+                getNoticeTypeColor(type) {
+                    const colorMap = {
+                        1: 'info',
+                        2: 'warning',
+                        3: 'success'
+                    };
+                    return colorMap[type] || 'info';
+                },
+                
+                // 获取页面标题
+                getPageTitle() {
+                    const titleMap = {
+                        home: '首页',
+                        facilities: '场馆列表',
+                        profile: '个人中心',
+                        ai: 'AI助手'
+                    };
+                    return titleMap[this.currentPage] || '页面';
+                },
+                
+                // 处理用户下拉菜单命令
+                handleUserCommand(command) {
+                    switch (command) {
+                        case 'profile':
+                            this.currentPage = 'profile';
+                            break;
+                        case 'settings':
+                            this.$message.info('设置功能开发中');
+                            break;
+                        case 'logout':
+                            this.handleLogout();
+                            break;
+                    }
+                },
+                
+                // 处理退出登录
+                handleLogout() {
+                    this.$confirm('确定要退出登录吗？', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        Auth.logout();
+                        this.$message.success('已退出登录');
+                        window.location.href = '../../index.html';
+                    }).catch(() => {});
+                },
+                
+                // 格式化时间
+                formatTime(time) {
+                    return dayjs(time).format('MM-DD HH:mm');
+                },
+                
+                // 新增的页面跳转方法
+                goToPage(page) {
+                    window.location.href = page;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+
