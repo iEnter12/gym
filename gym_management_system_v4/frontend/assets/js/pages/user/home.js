@@ -49,35 +49,49 @@ new Vue({
         },
         
         // 加载天气信息
-        loadWeather() {
-            api.weather.getHarbinWeather()
-                .then(response => {
-                    if (response.success) {
-                        this.weather = response.data;
-                    } else {
-                        console.error('获取天气信息失败:', response.message);
-                        this.weather = {
-                            city: '哈尔滨',
-                            temperature: '--',
-                            weather: '未知',
-                            humidity: '--',
-                            windSpeed: '--',
-                            updateTime: new Date()
-                        };
-                    }
-                })
-                .catch(error => {
-                    console.error('获取天气信息失败:', error);
-                    this.weather = {
-                        city: '哈尔滨',
-                        temperature: '--',
-                        weather: '未知',
-                        humidity: '--',
-                        windSpeed: '--',
-                        updateTime: new Date()
-                    };
-                });
-        },
+                loadWeather() {
+                    api.weather.getHarbinWeather()
+                        .then(response => {
+                            console.log('完整响应:', response)  // 关键调试点1
+                            console.log('响应数据:', response.data) // 关键调试点2
+
+                            if (response.success) {
+                                // this.weather = response.data;
+                                const liveData = response.data.lives[0];
+                                this.weather = {
+                                    city: liveData.city || '哈尔滨',  // 使用API返回的城市名
+                                    temperature: liveData.temperature || '--',  // 温度字符串
+                                    weather: liveData.weather || '未知',
+                                    humidity: liveData.humidity || '--',
+                                    windSpeed: liveData.windpower || '--',  // 注意字段是windpower
+                                    updateTime: liveData.reporttime ? 
+                                    new Date(liveData.reporttime).toLocaleString() : 
+                                    new Date().toLocaleString()
+                                };
+                            } else {
+                                console.error('获取天气信息失败:', response.message);
+                                this.weather = {
+                                    city: '哈尔滨',
+                                    temperature: '--',
+                                    weather: '未知',
+                                    humidity: '--',
+                                    windSpeed: '--',
+                                    updateTime: new Date()
+                                };
+                            }
+                        })
+                        .catch(error => {
+                            console.error('获取天气信息失败:', error);
+                            this.weather = {
+                                city: '哈尔滨',
+                                temperature: '--',
+                                weather: '未知',
+                                humidity: '--',
+                                windSpeed: '--',
+                                updateTime: new Date()
+                            };
+                        });
+                },
         
         // 加载场馆类型
         loadFacilityTypes() {

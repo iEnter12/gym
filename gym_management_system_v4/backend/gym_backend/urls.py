@@ -27,6 +27,7 @@ urlpatterns = [
     path('api/facilities/', include('facilities.urls')),
     path('api/reviews/', include('reviews.urls')),
     path('api/notices/', include('notices.urls')),
+    path('api/', include('external_apis.urls'))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # 开发环境下提供静态文件服务
