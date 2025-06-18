@@ -21,10 +21,10 @@ def harbin_weather_view(request):
         weather_data = weather_service.get_weather('哈尔滨')
         
         # 保存到数据库（用于缓存和历史记录）
-        weather_obj, created = WeatherData.objects.update_or_create(
-            city='哈尔滨',
-            defaults=weather_data
-        )
+        # weather_obj, created = WeatherData.objects.update_or_create(
+        #     city='哈尔滨',
+        #     defaults=weather_data
+        # )
         
         return Response({
             'success': True,

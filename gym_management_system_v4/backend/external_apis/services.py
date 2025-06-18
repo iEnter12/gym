@@ -14,18 +14,26 @@ class WeatherService:
     
     def __init__(self):
         self.api_key = settings.WEATHER_API_KEY
-        self.api_url = "https://api.weatherapi.com/v1/forecast.json"
+        # self.api_url = "https://api.weatherapi.com/v1/forecast.json"
+        self.api_url = "http://restapi.amap.com/v3/weather/weatherInfo"
         self.cache_timeout = 300  # 5分钟缓存
     
-    def get_weather_forecast(self, city="Beijing"):
+    def get_weather_forecast(self, city_code="230100", extensions="base"):
         try:
+            # params = {
+            #     'key': self.api_key,
+            #     'q': city,
+            #     'days': 3,
+            #     'aqi': 'no',
+            #     'alerts': 'no'
+            # }
             params = {
                 'key': self.api_key,
-                'q': city,
-                'days': 3,
-                'aqi': 'no',
-                'alerts': 'no'
+                'city': city_code,
+                'extensions': extensions,
+                'output': 'JSON'
             }
+            print(self.api_key)
             response = requests.get(self.api_url, params=params, timeout=10)
             response.raise_for_status()
             return response.json()
@@ -36,6 +44,7 @@ class WeatherService:
     def get_weather(self, city='哈尔滨'):
         """获取天气信息"""
         cache_key = f'weather_{city}'
+
         
         # 尝试从缓存获取
         cached_data = cache.get(cache_key)
@@ -47,7 +56,7 @@ class WeatherService:
             # 调用真实API
             if self.api_key:
                 logger.info(f"调用天气API获取数据: {city}")
-                weather_data = self.get_weather_forecast(city)
+                weather_data = self.get_weather_forecast(city_code=230100)
             else:
                 logger.warning("未配置天气API密钥，使用模拟数据")
                 weather_data = self._get_mock_weather(city)
