@@ -3,109 +3,882 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>场馆预约 - 健身房管理系统</title>
-    <link rel="stylesheet" href="../../assets/css/element-ui.css">
+    <title>场馆预约 - 体育场馆预约系统</title>
     <link rel="stylesheet" href="../../assets/css/common.css">
     <link rel="stylesheet" href="../../assets/css/user.css">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/dayjs@1.11.10/dayjs.min.js"></script>
 </head>
 <body>
     <div id="app">
-        <el-container>
-            <el-header>
-                <div class="header-content">
-                    <h1>场馆预约</h1>
-                <div class="user-info">
-                        <span>{{ userInfo.username }}</span>
-                        <el-button type="text" @click="logout">退出</el-button>
+        <!-- 顶部导航 -->
+        <div class="header">
+            <div class="header-container">
+                <div class="logo">
+                    <i class="el-icon-trophy"></i>
+                    <span>体育场馆预约系统</span>
+                </div>
+                
+                <div class="nav-menu">
+                    <div class="nav-item" @click="goToPage('home')">
+                        <i class="el-icon-house"></i>
+                        首页
+                    </div>
+                    <div class="nav-item" @click="goToPage('facilities')">
+                        <i class="el-icon-office-building"></i>
+                        场馆列表
+                    </div>
+                    <div class="nav-item" @click="goToPage('profile')">
+                        <i class="el-icon-user"></i>
+                        个人中心
+                    </div>
+                    <div class="nav-item" @click="goToPage('ai')">
+                        <i class="el-icon-chat-dot-round"></i>
+                        AI助手
                     </div>
                 </div>
-            </el-header>
-            
-            <el-main>
-                <el-row :gutter="20" v-loading="loading">
-                    <el-col :span="8" v-for="facility in facilities" :key="facility.id">
-                        <el-card class="facility-card">
-                            <div slot="header">
-                                <span>{{ facility.name }}</span>
-                            </div>
-                            <div class="facility-info">
-                                <p><i class="el-icon-location"></i> {{ facility.location }}</p>
-                                <p><i class="el-icon-money"></i> {{ formatPrice(facility.price) }}</p>
-                                <p><i class="el-icon-info"></i> {{ facility.description }}</p>
-                                </div>
-                            <div class="facility-actions">
-                                <el-button type="primary" @click="showBookingDialog(facility)">
-                                    立即预约
-                                </el-button>
-                            </div>
-                        </el-card>
-                    </el-col>
-                </el-row>
-            </el-main>
-        </el-container>
+                
+                <div class="user-info">
+                    <el-dropdown @command="handleUserCommand">
+                        <span class="user-dropdown">
+                            <el-avatar :src="userInfo.avatar" :size="32">
+                                {{ userInfo.real_name ? userInfo.real_name.charAt(0) : 'U' }}
+                            </el-avatar>
+                            <span class="username">{{ userInfo.real_name || userInfo.username }}</span>
+                            <i class="el-icon-arrow-down"></i>
+                        </span>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </div>
+            </div>
+        </div>
 
-        <!-- 预约对话框 -->
-        <el-dialog
-            title="预约场馆"
-            :visible.sync="dialogVisible"
-            width="500px">
-            <el-form :model="bookingForm" :rules="rules" ref="bookingForm" label-width="100px">
-                <el-form-item label="场馆" prop="facility">
-                    <span>{{ currentFacility ? currentFacility.name : '' }}</span>
-                </el-form-item>
-                <el-form-item label="日期" prop="date">
+        <!-- 主要内容区域 -->
+        <div class="main-content">
+            <div class="booking-page">
+                <!-- 页面标题和面包屑 -->
+                <div class="page-header">
+                    <div class="container">
+
+                    </div>
+                </div>
+
+                <!-- 场馆详情区域 -->
+                <div class="facility-detail-section">
+                    <div class="container">
+                        <div class="facility-detail-container">
+                            <!-- 场馆图片 -->
+                            <div class="facility-images">
+                                <div class="main-image">
+                                    <img :src="facilityInfo.image_url" :alt="facilityInfo.facility_name">
+                                    <div class="facility-status" :class="getStatusClass(facilityInfo.status)">
+                                        {{ getStatusText(facilityInfo.status) }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 场馆信息 -->
+                            <div class="facility-info">
+                                <div class="facility-header">
+                                    <h1>{{ facilityInfo.facility_name }}</h1>
+                                    <div class="facility-type-tag">{{ getFacilityTypeName(facilityInfo.type_id) }}</div>
+                                </div>
+                                
+                                <div class="facility-location">
+                                    <i class="el-icon-location"></i>
+                                    <span>{{ facilityInfo.location }}</span>
+                                </div>
+
+                                <div class="facility-description">
+                                    <p>{{ facilityInfo.description }}</p>
+                                </div>
+
+                                <div class="facility-specs">
+                                    <div class="spec-item">
+                                        <i class="el-icon-user"></i>
+                                        <span class="spec-label">容量：</span>
+                                        <span class="spec-value">{{ facilityInfo.capacity }}人</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <i class="el-icon-crop"></i>
+                                        <span class="spec-label">面积：</span>
+                                        <span class="spec-value">{{ facilityInfo.area }}㎡</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <i class="el-icon-money"></i>
+                                        <span class="spec-label">价格：</span>
+                                        <span class="spec-value price">¥{{ facilityInfo.price }}/小时</span>
+                                    </div>
+                                </div>
+
+                                <!-- 营业时间 -->
+                                <div class="operating-hours">
+                                    <h3>营业时间</h3>
+                                    <p>每日 6:00 - 22:00</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 预约表单区域 -->
+                <div class="booking-form-section">
+                    <div class="container">
+                        <div class="booking-container">
+                            <!-- 预约表单 -->
+                            <div class="booking-form">
+                                <h2>预约信息</h2>
+                                
+                                <el-form :model="bookingForm" :rules="bookingRules" ref="bookingForm" label-width="100px">
+                                    <el-form-item label="预约日期" prop="booking_date">
                                         <el-date-picker
-                        v-model="bookingForm.date"
+                                            v-model="bookingForm.booking_date"
                                             type="date"
-                        placeholder="选择日期"
-                        :picker-options="{
-                            disabledDate(time) {
-                                return time.getTime() < Date.now() - 8.64e7;
-                            }
-                        }">
+                                            placeholder="选择预约日期"
+                                            :picker-options="datePickerOptions"
+                                            format="yyyy-MM-dd"
+                                            value-format="yyyy-MM-dd"
+                                            style="width: 100%;">
                                         </el-date-picker>
                                     </el-form-item>
-                <el-form-item label="时间段" prop="time_slot">
-                    <el-select v-model="bookingForm.time_slot" placeholder="请选择时间段">
-                        <el-option
-                            v-for="slot in timeSlots"
-                            :key="slot.value"
-                            :label="slot.label"
-                            :value="slot.value">
-                        </el-option>
-                    </el-select>
+
+                                    <el-form-item label="预约时间" prop="time_slot" required>
+                                        <div class="time-slots-container">
+                                            <div v-if="availableTimeSlots.length === 0" class="no-slots-tip">
+                                                暂无可用时间段
+                                            </div>
+                                            <div v-else class="time-slots-grid">
+                                                <div 
+                                                    v-for="slot in availableTimeSlots" 
+                                                    :key="slot.id"
+                                                    class="time-slot"
+                                                    :class="{ 
+                                                        'selected': selectedTimeSlots.includes(slot.id),
+                                                        'disabled': slot.disabled 
+                                                    }"
+                                                    @click="selectTimeSlot(slot)">
+                                                    <div class="time-range">{{ slot.start_time }} - {{ slot.end_time }}</div>
+                                                    <div class="time-price">¥{{ slot.price }}</div>
+                                                    <div v-if="slot.disabled" class="time-status">已预约</div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </el-form-item>
-                <el-form-item label="时长" prop="duration">
-                    <el-select v-model="bookingForm.duration" placeholder="请选择时长">
-                        <el-option
-                            v-for="duration in durations"
-                            :key="duration.value"
-                            :label="duration.label"
-                            :value="duration.value">
-                        </el-option>
-                    </el-select>
+
+                                    <el-form-item label="预约人数" prop="person_count">
+                                        <el-input-number
+                                            v-model="bookingForm.person_count"
+                                            :min="1"
+                                            :max="facilityInfo.capacity"
+                                            style="width: 200px;">
+                                        </el-input-number>
+                                        <span class="capacity-hint">（最多{{ facilityInfo.capacity }}人）</span>
                                     </el-form-item>
+
+                                    <el-form-item label="联系电话" prop="contact_phone">
+                                        <el-input
+                                            v-model="bookingForm.contact_phone"
+                                            placeholder="请输入联系电话"
+                                            style="width: 300px;">
+                                        </el-input>
+                                    </el-form-item>
+
+                                    <el-form-item label="备注信息">
+                                        <el-input
+                                            v-model="bookingForm.remark"
+                                            type="textarea"
+                                            :rows="3"
+                                            placeholder="请输入备注信息（可选）"
+                                            maxlength="200"
+                                            show-word-limit>
+                                        </el-input>
+                                    </el-form-item>
+
+                                    <!-- 会员优惠已下线 -->
+                                    <!-- <el-form-item v-if="userMembership" label="会员优惠">
+                                        <el-checkbox v-model="bookingForm.is_member_used">
+                                            使用会员优惠（{{ userMembership.discount * 10 }}折）
+                                        </el-checkbox>
+                                    </el-form-item> -->
                                 </el-form>
-            <div slot="footer" class="dialog-footer">
-                <el-button @click="dialogVisible = false">取 消</el-button>
-                <el-button type="primary" @click="submitBooking">确 定</el-button>
+                            </div>
+
+                            <!-- 预约摘要 -->
+                            <div class="booking-summary">
+                                <h3>预约摘要</h3>
+                                
+                                <div class="summary-item">
+                                    <span class="label">场馆：</span>
+                                    <span class="value">{{ facilityInfo.facility_name }}</span>
+                                </div>
+                                
+                                <div class="summary-item" v-if="bookingForm.booking_date">
+                                    <span class="label">日期：</span>
+                                    <span class="value">{{ bookingForm.booking_date }}</span>
+                                </div>
+                                
+                                <div class="summary-item" v-if="selectedTimeSlotInfo">
+                                    <span class="label">时间：</span>
+                                    <span class="value">{{ selectedTimeSlotInfo.start_time }} - {{ selectedTimeSlotInfo.end_time }}</span>
+                                </div>
+                                
+                                <div class="summary-item" v-if="bookingForm.person_count">
+                                    <span class="label">人数：</span>
+                                    <span class="value">{{ bookingForm.person_count }}人</span>
+                                </div>
+
+                                <div class="price-breakdown">
+                                    <div class="price-item">
+                                        <span class="label">原价：</span>
+                                        <span class="value">¥{{ originalPrice }}</span>
+                                    </div>
+                                    
+                                    <!-- 会员优惠已下线 -->
+                                    <!-- <div class="price-item" v-if="memberDiscount > 0">
+                                        <span class="label">会员优惠：</span>
+                                        <span class="value discount">-¥{{ memberDiscount }}</span>
+                                    </div> -->
+                                    
+                                    <div class="price-item total">
+                                        <span class="label">总计：</span>
+                                        <span class="value">¥{{ finalPrice }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="booking-actions">
+                                    <el-button type="primary" size="large" @click="submitBooking" :loading="submitting">
+                                        确认预约
+                                    </el-button>
+                                    <el-button size="large" @click="goToPage('facilities')">
+                                        返回列表
+                                    </el-button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 用户评价区域 -->
+                <div class="reviews-section">
+                    <div class="container">
+                        <h2>用户评价</h2>
+                        
+                        <div class="reviews-stats">
+                            <div class="rating-overview">
+                                <div class="average-rating">
+                                    <span class="rating-score">{{ getAverageRating() }}</span>
+                                    <el-rate
+                                        :value="getAverageRating()"
+                                        disabled
+                                        show-score
+                                        text-color="#ff9900">
+                                    </el-rate>
+                                </div>
+                                <div class="rating-count">基于 {{ reviews.length }} 条评价</div>
+                            </div>
+                        </div>
+
+                        <div class="reviews-list">
+                            <div
+                                v-for="review in displayedReviews"
+                                :key="review.review_id"
+                                class="review-item">
+                                <div class="review-header">
+                                    <div class="reviewer-info">
+                                        <el-avatar :size="40">{{ (review.account_username || review.account_real_name || '用户').charAt(0) }}</el-avatar>
+                                        <div class="reviewer-details">
+                                            <div class="reviewer-name">{{ review.account_real_name || review.account_username || '匿名用户' }}</div>
+                                            <div class="review-date">{{ formatDate(review.create_time) }}</div>
+                                        </div>
+                                    </div>
+                                    <el-rate v-model="review.rating" disabled></el-rate>
+                                </div>
+                                <div class="review-content">
+                                    <p>{{ review.content }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="reviews-pagination" v-if="reviews.length > 5">
+                            <el-button @click="loadMoreReviews" :loading="loadingReviews">
+                                查看更多评价
+                            </el-button>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </el-dialog>
+        </div>
     </div>
 
-    <script src="../../assets/js/vue.js"></script>
-    <script src="../../assets/js/element-ui.js"></script>
     <script src="../../utils/api.js"></script>
     <script src="../../utils/auth.js"></script>
     <script src="../../utils/mock.js"></script>
-    <script type="module">
-        import Booking from '../../assets/js/pages/user/booking.js';
-        
+    <script>
         new Vue({
             el: '#app',
-            ...Booking
+            data() {
+                return {
+                    userInfo: {},
+                    facilityInfo: {},
+                    // 会员功能已下线
+                    // userMembership: null,
+                    selectedTimeSlot: null,
+                    selectedTimeSlots: [], // 新增：存储多个选中的时间段
+                    submitting: false,
+                    loadingReviews: false,
+                    reviews: [],
+                    displayedReviews: [],
+                    reviewsPage: 1,
+                    bookingForm: {
+                        facility_id: null,
+                        booking_date: '',
+                        start_time: '',
+                        end_time: '',
+                        person_count: 1,
+                        contact_phone: '',
+                        remark: ''
+                        // 会员功能已下线
+                        // is_member_used: false
+                    },
+                    bookingRules: {
+                        booking_date: [
+                            { required: true, message: '请选择预约日期', trigger: 'change' }
+                        ],
+                        time_slot: [
+                            { required: true, message: '请选择预约时间', trigger: 'change' }
+                        ],
+                        person_count: [
+                            { required: true, message: '请输入预约人数', trigger: 'blur' }
+                        ],
+                        contact_phone: [
+                            { required: true, message: '请输入联系电话', trigger: 'blur' },
+                            { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
+                        ]
+                    },
+                    datePickerOptions: {
+                        disabledDate(time) {
+                            // 只能选择明天及以后的日期（提前一天预约）
+                            const tomorrow = new Date();
+                            tomorrow.setDate(tomorrow.getDate() + 1);
+                            tomorrow.setHours(0, 0, 0, 0);
+                            return time.getTime() < tomorrow.getTime();
+                        }
+                    },
+                    availableTimeSlots: [],
+                    facilityTypes: [] // 添加场馆类型数据
+                }
+            },
+            computed: {
+                selectedTimeSlotInfo() {
+                    return this.availableTimeSlots.find(slot => slot.id === this.selectedTimeSlot);
+                },
+                
+                originalPrice() {
+                    if (!this.selectedTimeSlotInfo) return 0;
+                    return this.selectedTimeSlotInfo.price;
+                },
+                
+                // 会员折扣已下线
+                memberDiscount() {
+                    return 0;
+                },
+                
+                finalPrice() {
+                    return this.originalPrice;
+                }
+            },
+            mounted() {
+                this.checkAuth();
+                this.loadUserInfo();
+                this.loadFacilityInfo();
+                this.loadFacilityTypes(); // 添加加载场馆类型
+                // 会员功能已下线
+                // this.loadUserMembership();
+                this.loadReviews();
+                
+                // 设置默认预约日期为明天
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                this.bookingForm.booking_date = tomorrow.toISOString().split('T')[0];
+            },
+            watch: {
+                // 监听预约日期变化，重新加载可用时间段
+                'bookingForm.booking_date': function(newVal) {
+                    if (newVal && this.facilityInfo && this.facilityInfo.facility_id) {
+                        this.loadAvailableTimeSlots();
+                        this.selectedTimeSlot = null;
+                        this.bookingForm.start_time = '';
+                        this.bookingForm.end_time = '';
+                    }
+                }
+            },
+            methods: {
+                // 检查登录状态
+                checkAuth() {
+                    if (!Auth.requireUser()) {
+                        return;
+                    }
+                },
+                
+                // 获取状态样式类
+                getStatusClass(status) {
+                    const classMap = {
+                        1: 'status-available',
+                        2: 'status-maintenance',
+                        3: 'status-closed'
+                    };
+                    return classMap[status] || 'status-unknown';
+                },
+                
+                // 获取状态文本
+                getStatusText(status) {
+                    const textMap = {
+                        1: '可用',
+                        2: '维护中',
+                        3: '已关闭'
+                    };
+                    return textMap[status] || '未知';
+                },
+                
+                // 加载用户信息
+                loadUserInfo() {
+                    this.userInfo = Auth.getUserInfo() || {};
+                    this.bookingForm.contact_phone = this.userInfo.phone || '';
+                },
+                
+                // 加载场馆信息
+                loadFacilityInfo() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const facilityId = urlParams.get('facility_id');
+                    
+                    if (!facilityId) {
+                        this.$message.error('场馆ID不存在');
+                        this.goToPage('facilities');
+                        return;
+                    }
+                    
+                    this.bookingForm.facility_id = parseInt(facilityId);
+                    
+                    // 使用API获取场馆信息
+                    api.facilities.getDetail(facilityId)
+                        .then(response => {
+                            if (response.success) {
+                                this.facilityInfo = response.data;
+                                this.loadAvailableTimeSlots();
+                            } else {
+                                this.$message.error(response.message || '获取场馆信息失败');
+                                this.goToPage('facilities');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('获取场馆信息失败:', error);
+                            this.$message.error('获取场馆信息失败');
+                            this.goToPage('facilities');
+                        });
+                },
+                
+                // 加载可用时间段
+                loadAvailableTimeSlots() {
+                    if (!this.bookingForm.booking_date || !this.facilityInfo.facility_id) {
+                        return;
+                    }
+                    
+                    // 生成所有可能的时间段（6:00-22:00，每小时一个时间段）
+                    const allTimeSlots = this.generateAllTimeSlots();
+                    
+                    // 获取可用时间段
+                    api.facilities.getAvailableSlots(this.facilityInfo.facility_id, this.bookingForm.booking_date)
+                        .then(response => {
+                            if (response.success) {
+                                const availableSlots = response.data.available_slots;
+                                console.log('可用时间段:', availableSlots);
+                                
+                                // 标记哪些时间段是可用的
+                                this.availableTimeSlots = allTimeSlots.map(slot => {
+                                    const isAvailable = availableSlots.some(available => 
+                                        available.start_time === slot.start_time && 
+                                        available.end_time === slot.end_time
+                                    );
+                                    
+                                    return {
+                                        ...slot,
+                                        disabled: !isAvailable,
+                                        status: isAvailable ? '可预约' : '已预约'
+                                    };
+                                });
+                                
+                                console.log('处理后的时间段:', this.availableTimeSlots);
+                            } else {
+                                this.$message.error(response.message || '获取可用时间段失败');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('获取可用时间段失败:', error);
+                            this.$message.error('获取可用时间段失败');
+                        });
+                },
+                
+                // 生成所有时间段（6:00-22:00）
+                generateAllTimeSlots() {
+                    const slots = [];
+                    const startHour = 6;
+                    const endHour = 22;
+                    
+                    for (let hour = startHour; hour < endHour; hour++) {
+                        const startTime = `${hour.toString().padStart(2, '0')}:00`;
+                        const endTime = `${(hour + 1).toString().padStart(2, '0')}:00`;
+                        
+                        slots.push({
+                            id: `${startTime}-${endTime}`,
+                            start_time: startTime,
+                            end_time: endTime,
+                            price: this.facilityInfo.price || 0,
+                            disabled: false
+                        });
+                    }
+                    
+                    return slots;
+                },
+                
+                // 选择时间段
+                selectTimeSlot(slot) {
+                    if (slot.disabled) {
+                        this.$message.warning('该时间段已被预约');
+                        return;
+                    }
+                    
+                    // 检查是否已经选中
+                    const index = this.selectedTimeSlots.indexOf(slot.id);
+                    
+                    if (index === -1) {
+                        // 添加到选中列表
+                        this.selectedTimeSlots.push(slot.id);
+                    } else {
+                        // 从选中列表中移除
+                        this.selectedTimeSlots.splice(index, 1);
+                    }
+                    
+                    // 如果有选中的时间段，设置第一个为开始时间，最后一个为结束时间
+                    if (this.selectedTimeSlots.length > 0) {
+                        // 根据选中的时间段ID获取对应的时间段对象
+                        const selectedSlots = this.availableTimeSlots.filter(s => 
+                            this.selectedTimeSlots.includes(s.id)
+                        );
+                        
+                        // 按开始时间排序
+                        selectedSlots.sort((a, b) => {
+                            return a.start_time.localeCompare(b.start_time);
+                        });
+                        
+                        // 设置开始时间和结束时间
+                        this.bookingForm.start_time = selectedSlots[0].start_time;
+                        this.bookingForm.end_time = selectedSlots[selectedSlots.length - 1].end_time;
+                    } else {
+                        // 清空开始时间和结束时间
+                        this.bookingForm.start_time = '';
+                        this.bookingForm.end_time = '';
+                    }
+                },
+                
+                // 提交预约
+                submitBooking() {
+                    // 表单验证
+                    if (!this.bookingForm.booking_date) {
+                        this.$message.error('请选择预约日期');
+                        return;
+                    }
+                    
+                    if (this.selectedTimeSlots.length === 0) {
+                        this.$message.error('请选择至少一个预约时间段');
+                        return;
+                    }
+                    
+                    if (!this.bookingForm.person_count || this.bookingForm.person_count < 1) {
+                        this.$message.error('请输入正确的人数');
+                        return;
+                    }
+                    
+                    // 获取选中的时间段
+                    const selectedSlots = this.availableTimeSlots.filter(s => 
+                        this.selectedTimeSlots.includes(s.id)
+                    );
+                    
+                    // 按开始时间排序
+                    selectedSlots.sort((a, b) => {
+                        return a.start_time.localeCompare(b.start_time);
+                    });
+                    
+                    // 构建预约数据
+                    const bookingData = {
+                        facility_id: parseInt(this.bookingForm.facility_id),
+                        booking_date: this.bookingForm.booking_date,
+                        start_time: selectedSlots[0].start_time,
+                        end_time: selectedSlots[selectedSlots.length - 1].end_time,
+                        person_count: parseInt(this.bookingForm.person_count),
+                        remark: this.bookingForm.remark || ''
+                    };
+                    
+                    // 添加时间段信息
+                    if (selectedSlots.length > 1) {
+                        bookingData.time_slots = selectedSlots.map(slot => ({
+                            start_time: slot.start_time,
+                            end_time: slot.end_time
+                        }));
+                    }
+                    
+                    console.log('提交预约数据:', bookingData);
+                    
+                    // 设置提交状态
+                    this.submitting = true;
+                    
+                    // 调用API创建预约
+                    api.bookings.create(bookingData)
+                        .then(response => {
+                            this.submitting = false;
+                            if (response.success) {
+                                this.$message.success('预约成功');
+                                this.goToPage('profile');
+                            } else {
+                                this.$message.error(response.message || '预约失败');
+                            }
+                        })
+                        .catch(error => {
+                            this.submitting = false;
+                            console.error('预约失败:', error);
+                            let errorMsg = '预约失败';
+                            if (error.response && error.response.data) {
+                                if (error.response.data.message) {
+                                    errorMsg = error.response.data.message;
+                                } else if (error.response.data.errors) {
+                                    const errors = error.response.data.errors;
+                                    errorMsg = Object.values(errors).flat().join(', ');
+                                }
+                            } else if (error.message) {
+                                errorMsg = error.message;
+                            }
+                            this.$message.error(errorMsg);
+                        });
+                },
+                
+                // 加载评价
+                loadReviews() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const facilityId = urlParams.get('facility_id');
+                    
+                    if (facilityId) {
+                        api.reviews.getFacilityReviews(parseInt(facilityId))
+                            .then(response => {
+                                if (response.success) {
+                                    this.reviews = response.data.reviews || [];
+                                    this.displayedReviews = this.reviews.slice(0, 5);
+                                } else {
+                                    console.error('获取评价失败:', response.message);
+                                }
+                            })
+                            .catch(error => {
+                                console.error('获取评价失败:', error);
+                                this.reviews = [];
+                                this.displayedReviews = [];
+                            });
+                    }
+                },
+                
+                // 加载更多评价
+                loadMoreReviews() {
+                    this.loadingReviews = true;
+                    
+                    setTimeout(() => {
+                        const start = this.displayedReviews.length;
+                        const end = start + 5;
+                        this.displayedReviews = this.reviews.slice(0, end);
+                        this.loadingReviews = false;
+                    }, 500);
+                },
+                
+                // 格式化日期
+                formatDate(dateString) {
+                    return dayjs(dateString).format('YYYY-MM-DD');
+                },
+                
+                // 获取平均评分
+                getAverageRating() {
+                    if (this.reviews.length === 0) return 0;
+                    const sum = this.reviews.reduce((acc, review) => acc + review.rating, 0);
+                    return Number((sum / this.reviews.length).toFixed(1));
+                },
+                
+                // 页面跳转
+                goToPage(page) {
+                    const pageMap = {
+                        home: 'home.html',
+                        facilities: 'facilities.html',
+                        profile: 'profile.html',
+                        ai: 'ai-chat.html'
+                    };
+                    if (pageMap[page]) {
+                        window.location.href = pageMap[page];
+                    }
+                },
+                
+                // 处理用户下拉菜单命令
+                handleUserCommand(command) {
+                    switch (command) {
+                        case 'logout':
+                            this.handleLogout();
+                            break;
+                    }
+                },
+                
+                // 处理退出登录
+                handleLogout() {
+                    this.$confirm('确定要退出登录吗？', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        Auth.logout();
+                        this.$message.success('已退出登录');
+                        window.location.href = '../../index.html';
+                    }).catch(() => {});
+                },
+                
+                // 获取场馆类型名称
+                getFacilityTypeName(typeId) {
+                    // 确保facilityTypes是数组
+                    if (!Array.isArray(this.facilityTypes)) {
+                        console.error('facilityTypes不是数组:', this.facilityTypes);
+                        return '未知类型';
+                    }
+                    const type = this.facilityTypes.find(t => t.type_id === typeId);
+                    return type ? type.type_name : '未知类型';
+                },
+                
+                // 加载场馆类型
+                loadFacilityTypes() {
+                    api.facilities.getTypes()
+                        .then(response => {
+                            if (response.success && Array.isArray(response.data)) {
+                                this.facilityTypes = response.data;
+                                console.log('加载的场馆类型数据:', this.facilityTypes);
+                            } else {
+                                console.error('获取场馆类型失败:', response);
+                                this.facilityTypes = [];
+                            }
+                        })
+                        .catch(error => {
+                            console.error('获取场馆类型出错:', error);
+                            this.facilityTypes = [];
+                        });
+                }
+            }
         });
     </script>
 </body>
 </html>
+
+
+<style>
+    /* 时间段选择样式 */
+    .time-slots-container {
+        margin-top: 10px;
+    }
+    
+    .no-slots-tip {
+        color: #909399;
+        padding: 20px 0;
+        text-align: center;
+    }
+    
+    .time-slots-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .time-slot {
+        border: 1px solid #DCDFE6;
+        border-radius: 4px;
+        padding: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+        position: relative;
+    }
+    
+    .time-slot:hover {
+        border-color: #409EFF;
+        background-color: #F5F7FA;
+    }
+    
+    .time-slot.selected {
+        border-color: #409EFF;
+        background-color: #ECF5FF;
+        color: #409EFF;
+    }
+    
+    .time-slot.disabled {
+        background-color: #F5F7FA;
+        color: #C0C4CC;
+        cursor: not-allowed;
+        border-color: #E4E7ED;
+        position: relative;
+        opacity: 0.7;
+    }
+    
+    .time-slot.disabled::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: repeating-linear-gradient(
+            45deg,
+            rgba(0, 0, 0, 0.05),
+            rgba(0, 0, 0, 0.05) 10px,
+            rgba(0, 0, 0, 0.1) 10px,
+            rgba(0, 0, 0, 0.1) 20px
+        );
+        pointer-events: none;
+    }
+    
+    .time-slot.disabled .time-range,
+    .time-slot.disabled .time-price {
+        color: #C0C4CC;
+    }
+    
+    .time-slot.disabled .time-status {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        font-size: 12px;
+        color: #F56C6C;
+        background-color: rgba(245, 108, 108, 0.1);
+        padding: 2px 6px;
+        border-radius: 2px;
+    }
+    
+    .time-range {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .time-price {
+        color: #F56C6C;
+        font-size: 14px;
+    }
+    
+    .time-status {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        font-size: 12px;
+        color: #F56C6C;
+    }
+</style>
 

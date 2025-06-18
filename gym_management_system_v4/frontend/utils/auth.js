@@ -318,3 +318,6 @@ class Auth {
     }
 }
 
+// 导出到全局作用域
+window.Auth = Auth;
+

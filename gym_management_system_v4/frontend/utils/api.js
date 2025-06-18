@@ -1,4 +1,6 @@
 // API 接口管理
+const axios = window.axios;
+
 class API {
     constructor() {
         this.baseURL = 'http://localhost:8000/api'; // Django后端API基础路径
@@ -258,46 +260,6 @@ class API {
         }
     };
     
-    // 订单相关API已删除
-    
-    // 会员相关API（已下线）
-    memberships = {
-        // 获取会员套餐（已下线）
-        getPackages: () => {
-            console.log('会员功能已下线');
-            return Promise.resolve({ success: true, data: [] });
-        },
-        
-        // 购买会员（已下线）
-        purchase: (data) => {
-            console.log('会员功能已下线');
-            return Promise.reject(new Error('会员功能已下线'));
-        },
-        
-        // 获取用户会员状态（已下线）
-        getUserMembership: () => {
-            console.log('会员功能已下线');
-            return Promise.resolve({ success: true, data: null });
-        },
-        
-        // 获取所有会员（管理员）（已下线）
-        getAll: (params) => {
-            console.log('会员功能已下线');
-            return Promise.resolve({ success: true, data: [] });
-        },
-        
-        // 创建会员套餐（管理员）（已下线）
-        createPackage: (data) => {
-            console.log('会员功能已下线');
-            return Promise.reject(new Error('会员功能已下线'));
-        },
-        
-        // 更新会员套餐（管理员）（已下线）
-        updatePackage: (id, data) => {
-            console.log('会员功能已下线');
-            return Promise.reject(new Error('会员功能已下线'));
-        }
-    };
     
     // 评价相关API
     reviews = {

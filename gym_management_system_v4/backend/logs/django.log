@@ -6062,3 +6062,388 @@ Not Found: /api/weather/harbin/
 "GET /api/auth/user/ HTTP/1.1" 200 264
 "GET /api/bookings/user/ HTTP/1.1" 200 52
 Watching for file changes with StatReloader
+"GET /api/notices/active/?limit=5 HTTP/1.1" 200 26
+"OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+Bad Request: /api/auth/login/
+"POST /api/auth/login/ HTTP/1.1" 400 101
+"POST /api/auth/login/ HTTP/1.1" 200 329
+"OPTIONS /api/auth/user/ HTTP/1.1" 200 0
+"GET /api/auth/user/ HTTP/1.1" 200 264
+"OPTIONS /api/bookings/user/ HTTP/1.1" 200 0
+"GET /api/bookings/user/ HTTP/1.1" 200 52
+"OPTIONS /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 0
+"OPTIONS /api/facilities/types/ HTTP/1.1" 200 0
+"OPTIONS /api/facilities/types/ HTTP/1.1" 200 0
+"OPTIONS /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 0
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 73
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 73
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 73
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 73
+"GET /api/auth/user/ HTTP/1.1" 200 264
+"GET /api/bookings/user/ HTTP/1.1" 200 52
+"GET /api/auth/user/ HTTP/1.1" 200 264
+"GET /api/bookings/user/ HTTP/1.1" 200 52
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 73
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 73
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"OPTIONS /api/weather/harbin/ HTTP/1.1" 200 0
+"OPTIONS /api/facilities/?limit=6 HTTP/1.1" 200 0
+Not Found: /api/weather/harbin/
+"GET /api/weather/harbin/ HTTP/1.1" 404 2964
+"GET /api/facilities/?limit=6 HTTP/1.1" 200 73
+Not Found: /api/weather/harbin/
+"GET /api/weather/harbin/ HTTP/1.1" 404 2964
+"GET /api/facilities/?limit=6 HTTP/1.1" 200 73
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 73
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 73
+"GET /api/auth/user/ HTTP/1.1" 200 264
+"GET /api/bookings/user/ HTTP/1.1" 200 52
+Not Found: /api/weather/harbin/
+"GET /api/weather/harbin/ HTTP/1.1" 404 2964
+"GET /api/facilities/?limit=6 HTTP/1.1" 200 73
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 73
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 73
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/auth/user/ HTTP/1.1" 200 264
+"GET /api/bookings/user/ HTTP/1.1" 200 52
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 73
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 73
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"OPTIONS /api/facilities/?page=1&page_size=12&type=1 HTTP/1.1" 200 0
+"GET /api/facilities/?page=1&page_size=12&type=1 HTTP/1.1" 200 73
+"OPTIONS /api/facilities/?page=1&page_size=12&type=2 HTTP/1.1" 200 0
+"GET /api/facilities/?page=1&page_size=12&type=2 HTTP/1.1" 200 73
+"OPTIONS /api/facilities/?page=1&page_size=12&type=3 HTTP/1.1" 200 0
+"GET /api/facilities/?page=1&page_size=12&type=3 HTTP/1.1" 200 73
+"OPTIONS /api/facilities/?page=1&page_size=12&type=4 HTTP/1.1" 200 0
+"GET /api/facilities/?page=1&page_size=12&type=4 HTTP/1.1" 200 73
+"GET /api/auth/user/ HTTP/1.1" 200 264
+"GET /api/bookings/user/ HTTP/1.1" 200 52
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 73
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 73
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/auth/user/ HTTP/1.1" 200 264
+"GET /api/bookings/user/ HTTP/1.1" 200 52
+"GET /api/notices/active/?limit=5 HTTP/1.1" 200 26
+Bad Request: /api/auth/login/
+"POST /api/auth/login/ HTTP/1.1" 400 101
+Bad Request: /api/auth/login/
+"POST /api/auth/login/ HTTP/1.1" 400 101
+Bad Request: /api/auth/login/
+"POST /api/auth/login/ HTTP/1.1" 400 101
+Bad Request: /api/auth/login/
+"POST /api/auth/login/ HTTP/1.1" 400 101
+Bad Request: /api/auth/login/
+"POST /api/auth/login/ HTTP/1.1" 400 101
+"POST /api/auth/login/ HTTP/1.1" 200 334
+"OPTIONS /api/facilities/ HTTP/1.1" 200 0
+"OPTIONS /api/bookings/?page=1&page_size=100&date_start=2025-06-15&date_end=2025-06-21 HTTP/1.1" 200 0
+"OPTIONS /api/bookings/?page=1&page_size=100&date=2025-06-18 HTTP/1.1" 200 0
+"GET /api/bookings/?page=1&page_size=100&date_start=2025-06-15&date_end=2025-06-21 HTTP/1.1" 200 52
+"GET /api/bookings/?page=1&page_size=100&date=2025-06-18 HTTP/1.1" 200 52
+"GET /api/facilities/ HTTP/1.1" 200 73
+"OPTIONS /api/facilities/?page=1&page_size=10 HTTP/1.1" 200 0
+"GET /api/auth/user/ HTTP/1.1" 200 269
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/?page=1&page_size=10 HTTP/1.1" 200 73
+"OPTIONS /api/bookings/?page=1&pageSize=10&status=&keyword= HTTP/1.1" 200 0
+Internal Server Error: /api/bookings/
+Traceback (most recent call last):
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\fields\__init__.py", line 1823, in get_prep_value
+    return int(value)
+ValueError: invalid literal for int() with base 10: ''
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\core\handlers\exception.py", line 47, in inner
+    response = get_response(request)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\core\handlers\base.py", line 181, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\views\decorators\csrf.py", line 54, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\views\generic\base.py", line 70, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\rest_framework\generics.py", line 199, in get
+    return self.list(request, *args, **kwargs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\rest_framework\mixins.py", line 38, in list
+    queryset = self.filter_queryset(self.get_queryset())
+  File "C:\Users\19060\Desktop\gym_manage\gym\gym_management_system_v4\backend\bookings\views.py", line 44, in get_queryset
+    queryset = queryset.filter(status=status_filter)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\query.py", line 941, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\query.py", line 961, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\query.py", line 968, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\sql\query.py", line 1396, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\sql\query.py", line 1415, in _add_q
+    child_clause, needed_inner = self.build_filter(
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\sql\query.py", line 1350, in build_filter
+    condition = self.build_lookup(lookups, col, value)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\sql\query.py", line 1196, in build_lookup
+    lookup = lookup_class(lhs, rhs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\lookups.py", line 25, in __init__
+    self.rhs = self.get_prep_lookup()
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\lookups.py", line 77, in get_prep_lookup
+    return self.lhs.output_field.get_prep_value(self.rhs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\fields\__init__.py", line 1825, in get_prep_value
+    raise e.__class__(
+ValueError: Field 'status' expected a number but got ''.
+"GET /api/bookings/?page=1&pageSize=10&status=&keyword= HTTP/1.1" 500 160435
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/?page=1&page_size=10 HTTP/1.1" 200 73
+"GET /api/auth/user/ HTTP/1.1" 200 269
+Internal Server Error: /api/bookings/
+Traceback (most recent call last):
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\fields\__init__.py", line 1823, in get_prep_value
+    return int(value)
+ValueError: invalid literal for int() with base 10: ''
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\core\handlers\exception.py", line 47, in inner
+    response = get_response(request)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\core\handlers\base.py", line 181, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\views\decorators\csrf.py", line 54, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\views\generic\base.py", line 70, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\rest_framework\generics.py", line 199, in get
+    return self.list(request, *args, **kwargs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\rest_framework\mixins.py", line 38, in list
+    queryset = self.filter_queryset(self.get_queryset())
+  File "C:\Users\19060\Desktop\gym_manage\gym\gym_management_system_v4\backend\bookings\views.py", line 44, in get_queryset
+    queryset = queryset.filter(status=status_filter)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\query.py", line 941, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\query.py", line 961, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\query.py", line 968, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\sql\query.py", line 1396, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\sql\query.py", line 1415, in _add_q
+    child_clause, needed_inner = self.build_filter(
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\sql\query.py", line 1350, in build_filter
+    condition = self.build_lookup(lookups, col, value)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\sql\query.py", line 1196, in build_lookup
+    lookup = lookup_class(lhs, rhs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\lookups.py", line 25, in __init__
+    self.rhs = self.get_prep_lookup()
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\lookups.py", line 77, in get_prep_lookup
+    return self.lhs.output_field.get_prep_value(self.rhs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\fields\__init__.py", line 1825, in get_prep_value
+    raise e.__class__(
+ValueError: Field 'status' expected a number but got ''.
+"GET /api/bookings/?page=1&pageSize=10&status=&keyword= HTTP/1.1" 500 160435
+"GET /api/facilities/?page=1&page_size=10 HTTP/1.1" 200 73
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/auth/user/ HTTP/1.1" 200 269
+Internal Server Error: /api/bookings/
+Traceback (most recent call last):
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\fields\__init__.py", line 1823, in get_prep_value
+    return int(value)
+ValueError: invalid literal for int() with base 10: ''
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\core\handlers\exception.py", line 47, in inner
+    response = get_response(request)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\core\handlers\base.py", line 181, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\views\decorators\csrf.py", line 54, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\views\generic\base.py", line 70, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\rest_framework\generics.py", line 199, in get
+    return self.list(request, *args, **kwargs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\rest_framework\mixins.py", line 38, in list
+    queryset = self.filter_queryset(self.get_queryset())
+  File "C:\Users\19060\Desktop\gym_manage\gym\gym_management_system_v4\backend\bookings\views.py", line 44, in get_queryset
+    queryset = queryset.filter(status=status_filter)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\query.py", line 941, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\query.py", line 961, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\query.py", line 968, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\sql\query.py", line 1396, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\sql\query.py", line 1415, in _add_q
+    child_clause, needed_inner = self.build_filter(
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\sql\query.py", line 1350, in build_filter
+    condition = self.build_lookup(lookups, col, value)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\sql\query.py", line 1196, in build_lookup
+    lookup = lookup_class(lhs, rhs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\lookups.py", line 25, in __init__
+    self.rhs = self.get_prep_lookup()
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\lookups.py", line 77, in get_prep_lookup
+    return self.lhs.output_field.get_prep_value(self.rhs)
+  File "C:\Users\19060\AppData\Local\Programs\Python\Python39\lib\site-packages\django\db\models\fields\__init__.py", line 1825, in get_prep_value
+    raise e.__class__(
+ValueError: Field 'status' expected a number but got ''.
+"GET /api/bookings/?page=1&pageSize=10&status=&keyword= HTTP/1.1" 500 160435
+"OPTIONS /api/bookings/?page=1&pageSize=10&keyword= HTTP/1.1" 200 0
+"GET /api/bookings/?page=1&pageSize=10&keyword= HTTP/1.1" 200 52
+"GET /api/bookings/?page=1&pageSize=10&keyword= HTTP/1.1" 200 52
+"GET /api/notices/active/?limit=5 HTTP/1.1" 200 26
+"POST /api/auth/login/ HTTP/1.1" 200 329
+Not Found: /api/weather/harbin/
+"GET /api/weather/harbin/ HTTP/1.1" 404 2964
+"GET /api/facilities/?limit=6 HTTP/1.1" 200 73
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 73
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 73
+"GET /api/auth/user/ HTTP/1.1" 200 264
+"GET /api/bookings/user/ HTTP/1.1" 200 52
+"GET /api/notices/active/?limit=5 HTTP/1.1" 200 26
+"POST /api/auth/login/ HTTP/1.1" 200 334
+"GET /api/bookings/?page=1&page_size=100&date_start=2025-06-15&date_end=2025-06-21 HTTP/1.1" 200 52
+"GET /api/bookings/?page=1&page_size=100&date=2025-06-18 HTTP/1.1" 200 52
+"GET /api/facilities/ HTTP/1.1" 200 73
+"GET /api/auth/user/ HTTP/1.1" 200 269
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/?page=1&page_size=10 HTTP/1.1" 200 73
+"POST /api/facilities/ HTTP/1.1" 201 547
+"GET /api/facilities/?page=1&page_size=10 HTTP/1.1" 200 620
+"POST /api/facilities/ HTTP/1.1" 201 552
+"GET /api/facilities/?page=1&page_size=10 HTTP/1.1" 200 1173
+"GET /api/notices/active/?limit=5 HTTP/1.1" 200 26
+"POST /api/auth/login/ HTTP/1.1" 200 329
+Not Found: /api/weather/harbin/
+"GET /api/weather/harbin/ HTTP/1.1" 404 2964
+"GET /api/facilities/?limit=6 HTTP/1.1" 200 1173
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 1173
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 1173
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/auth/user/ HTTP/1.1" 200 264
+"GET /api/bookings/user/ HTTP/1.1" 200 52
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 1173
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 1173
+Not Found: /api/weather/harbin/
+"GET /api/weather/harbin/ HTTP/1.1" 404 2964
+"GET /api/facilities/?limit=6 HTTP/1.1" 200 1173
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 1173
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 1173
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"OPTIONS /api/facilities/1/ HTTP/1.1" 200 0
+"OPTIONS /api/reviews/facility/1/ HTTP/1.1" 200 0
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/1/ HTTP/1.1" 200 701
+"GET /api/reviews/facility/1/ HTTP/1.1" 200 197
+"OPTIONS /api/facilities/1/available-slots/?date=2025-06-19 HTTP/1.1" 200 0
+"GET /api/facilities/1/available-slots/?date=2025-06-19 HTTP/1.1" 200 990
+"OPTIONS /api/facilities/2/ HTTP/1.1" 200 0
+"OPTIONS /api/reviews/facility/2/ HTTP/1.1" 200 0
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/2/ HTTP/1.1" 200 709
+"GET /api/reviews/facility/2/ HTTP/1.1" 200 197
+"OPTIONS /api/facilities/2/available-slots/?date=2025-06-19 HTTP/1.1" 200 0
+"GET /api/facilities/2/available-slots/?date=2025-06-19 HTTP/1.1" 200 993
+"OPTIONS /api/bookings/create/ HTTP/1.1" 200 0
+"POST /api/bookings/create/ HTTP/1.1" 201 65
+"GET /api/auth/user/ HTTP/1.1" 200 264
+"GET /api/bookings/user/ HTTP/1.1" 200 426
+"OPTIONS /api/bookings/1/confirm/ HTTP/1.1" 200 0
+"PUT /api/bookings/1/confirm/ HTTP/1.1" 200 112
+"GET /api/bookings/user/ HTTP/1.1" 200 426
+"GET /api/notices/active/?limit=5 HTTP/1.1" 200 26
+"POST /api/auth/login/ HTTP/1.1" 200 334
+"GET /api/bookings/?page=1&page_size=100&date_start=2025-06-15&date_end=2025-06-21 HTTP/1.1" 200 426
+"GET /api/bookings/?page=1&page_size=100&date=2025-06-18 HTTP/1.1" 200 426
+"GET /api/facilities/ HTTP/1.1" 200 1173
+"GET /api/bookings/?page=1&pageSize=10&keyword= HTTP/1.1" 200 426
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/auth/user/ HTTP/1.1" 200 269
+"GET /api/facilities/?page=1&page_size=10 HTTP/1.1" 200 1173
+"GET /api/bookings/?page=1&pageSize=10&keyword= HTTP/1.1" 200 426
+"OPTIONS /api/bookings/ HTTP/1.1" 200 0
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/bookings/ HTTP/1.1" 200 426
+"GET /api/auth/user/ HTTP/1.1" 200 269
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/?page=1&page_size=10 HTTP/1.1" 200 1173
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/bookings/ HTTP/1.1" 200 426
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/?page=1&page_size=10 HTTP/1.1" 200 1173
+"GET /api/auth/user/ HTTP/1.1" 200 269
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/bookings/ HTTP/1.1" 200 426
+"OPTIONS /api/bookings/1/ HTTP/1.1" 200 0
+"GET /api/bookings/1/ HTTP/1.1" 200 575
+"GET /api/bookings/1/ HTTP/1.1" 200 575
+"GET /api/auth/user/ HTTP/1.1" 200 269
+"GET /api/facilities/?page=1&page_size=10 HTTP/1.1" 200 1173
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/bookings/ HTTP/1.1" 200 426
+"GET /api/notices/active/?limit=5 HTTP/1.1" 200 26
+"POST /api/auth/login/ HTTP/1.1" 200 329
+Not Found: /api/weather/harbin/
+"GET /api/weather/harbin/ HTTP/1.1" 404 2964
+"GET /api/facilities/?limit=6 HTTP/1.1" 200 1173
+"GET /api/auth/user/ HTTP/1.1" 200 264
+"GET /api/bookings/user/ HTTP/1.1" 200 426
+"OPTIONS /api/bookings/1/checkin/ HTTP/1.1" 200 0
+"PUT /api/bookings/1/checkin/ HTTP/1.1" 200 106
+"GET /api/bookings/user/ HTTP/1.1" 200 426
+"OPTIONS /api/reviews/create HTTP/1.1" 200 0
+"POST /api/reviews/create HTTP/1.1" 200 504
+"GET /api/bookings/user/ HTTP/1.1" 200 425
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 1173
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/?page=1&page_size=12 HTTP/1.1" 200 1173
+"GET /api/facilities/1/ HTTP/1.1" 200 701
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/reviews/facility/1/ HTTP/1.1" 200 197
+"GET /api/facilities/1/available-slots/?date=2025-06-19 HTTP/1.1" 200 990
+"GET /api/facilities/types/ HTTP/1.1" 200 790
+"GET /api/facilities/2/ HTTP/1.1" 200 709
+"GET /api/reviews/facility/2/ HTTP/1.1" 200 646
+"GET /api/facilities/2/available-slots/?date=2025-06-19 HTTP/1.1" 200 938
