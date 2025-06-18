@@ -13,9 +13,9 @@ new Vue({
                 updateTime: new Date()
             },
             carouselItems: [
-                { image: '../../assets/images/banner1.jpg', title: '智能预约，便捷运动', description: '一键预约您心仪的场馆，开启健康生活。' },
-                { image: '../../assets/images/banner2.jpg', title: '丰富场馆，多样选择', description: '篮球、羽毛球、游泳…总有适合你的运动空间。' },
-                { image: '../../assets/images/banner3.jpg', title: '会员特权，尊享优惠', description: '加入会员，体验更多专属福利。' }
+                { image: '../../assets/images/carousel-basketball.jpg', title: '智能预约，便捷运动', description: '一键预约您心仪的场馆，开启健康生活。' },
+                { image: '../../assets/images/carousel-badminton.jpg', title: '丰富场馆，多样选择', description: '篮球、羽毛球、游泳…总有适合你的运动空间。' },
+                { image: '../../assets/images/carousel-swimming.jpg', title: '会员特权，尊享优惠', description: '加入会员，体验更多专属福利。' }
             ],
             facilityTypes: [],
             popularFacilities: [],
@@ -43,32 +43,97 @@ new Vue({
         // 加载页面数据
         loadData() {
             this.loadWeather();
-            this.loadFacilityTypes();
+            // 已移除加载场馆类型
             this.loadPopularFacilities();
-            this.loadNotices();
+            // 已移除加载公告
         },
         
         // 加载天气信息
         loadWeather() {
-            const result = MockData.getHarbinWeather();
-            if (result.success) {
-                this.weather = result.data;
-            }
+            api.weather.getHarbinWeather()
+                .then(response => {
+                    if (response.success) {
+                        this.weather = response.data;
+                    } else {
+                        console.error('获取天气信息失败:', response.message);
+                        this.weather = {
+                            city: '哈尔滨',
+                            temperature: '--',
+                            weather: '未知',
+                            humidity: '--',
+                            windSpeed: '--',
+                            updateTime: new Date()
+                        };
+                    }
+                })
+                .catch(error => {
+                    console.error('获取天气信息失败:', error);
+                    this.weather = {
+                        city: '哈尔滨',
+                        temperature: '--',
+                        weather: '未知',
+                        humidity: '--',
+                        windSpeed: '--',
+                        updateTime: new Date()
+                    };
+                });
         },
         
         // 加载场馆类型
         loadFacilityTypes() {
-            this.facilityTypes = MockData.facilityTypes;
+            api.facilities.getTypes()
+                .then(response => {
+                    if (response.success && Array.isArray(response.data)) {
+                        // 确保每个类型都有正确的图标类名
+                        this.facilityTypes = response.data.map(type => {
+                            // 处理图标格式
+                            if (type.icon) {
+                                // 如果后端返回的icon不是以el-icon开头，则添加默认前缀
+                                if (!type.icon.startsWith('el-icon-')) {
+                                    type.icon = 'el-icon-' + type.icon;
+                                }
+                            } else {
+                                // 如果没有icon，设置一个默认图标
+                                type.icon = 'el-icon-data-analysis';
+                            }
+                            return type;
+                        });
+                        console.log('加载场馆类型成功:', this.facilityTypes);
+                    } else {
+                        console.error('获取场馆类型失败:', response);
+                        this.facilityTypes = [];
+                    }
+                })
+                .catch(error => {
+                    console.error('获取场馆类型失败:', error);
+                    // 加载失败时，可以设置一些默认数据或显示错误提示
+                });
         },
         
         // 加载热门场馆
         loadPopularFacilities() {
-            this.popularFacilities = MockData.getFacilities().slice(0, 6);
+            api.facilities.getList({ limit: 6 })
+                .then(response => {
+                    if (response.success) {
+                        this.popularFacilities = response.data;
+                    }
+                })
+                .catch(error => {
+                    console.error('获取热门场馆失败:', error);
+                });
         },
         
         // 加载公告
         loadNotices() {
-            this.notices = MockData.notices;
+            api.notices.getActive({ limit: 5 })
+                .then(response => {
+                    if (response.success) {
+                        this.notices = response.data;
+                    }
+                })
+                .catch(error => {
+                    console.error('获取公告失败:', error);
+                });
         },
         
         // 跳转到场馆列表

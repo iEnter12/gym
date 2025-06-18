@@ -32,10 +32,6 @@
                         <i class="el-icon-office-building"></i>
                         场馆列表
                     </div>
-                    <div class="nav-item" @click="goToPage('booking.html')">
-                        <i class="el-icon-date"></i>
-                        我的预约
-                    </div>
                     <div class="nav-item" @click="goToPage('profile.html')">
                         <i class="el-icon-user"></i>
                         个人中心
@@ -56,9 +52,7 @@
                             <i class="el-icon-arrow-down"></i>
                         </span>
                         <el-dropdown-menu slot="dropdown">
-                            <el-dropdown-item command="profile">个人资料</el-dropdown-item>
-                            <el-dropdown-item command="settings">设置</el-dropdown-item>
-                            <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
+                            <el-dropdown-item command="logout">退出登录</el-dropdown-item>
                         </el-dropdown-menu>
                     </el-dropdown>
                 </div>
@@ -162,54 +156,10 @@
                 </div>
 
                 <!-- 场馆类型快捷入口 -->
-                <div class="facility-types-section">
-                    <div class="container">
-                        <div class="section-header">
-                            <h3>场馆类型</h3>
-                        </div>
-                        <div class="types-grid">
-                            <div
-                                v-for="type in facilityTypes"
-                                :key="type.type_id"
-                                class="type-card"
-                                @click="goToFacilitiesByType(type.type_id)">
-                                <div class="type-icon">
-                                    <i :class="type.icon"></i>
-                                </div>
-                                <div class="type-name">{{ type.type_name }}</div>
-                                <div class="type-description">{{ type.description }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <!-- 已删除场馆类型部分 -->
 
                 <!-- 最新公告 -->
-                <div class="notices-section">
-                    <div class="container">
-                        <div class="section-header">
-                            <h3>最新公告</h3>
-                        </div>
-                        <div class="notices-list">
-                            <div
-                                v-for="notice in notices.slice(0, 3)"
-                                :key="notice.notice_id"
-                                class="notice-item">
-                                <div class="notice-type">
-                                    <el-tag :type="getNoticeTypeColor(notice.notice_type)" size="small">
-                                        {{ getNoticeTypeText(notice.notice_type) }}
-                                    </el-tag>
-                                </div>
-                                <div class="notice-content">
-                                    <h4>{{ notice.title }}</h4>
-                                    <p>{{ notice.content }}</p>
-                                </div>
-                                <div class="notice-time">
-                                    {{ formatTime(notice.create_time) }}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <!-- 已删除公告部分 -->
             </div>
 
             <!-- 其他页面内容占位 -->
