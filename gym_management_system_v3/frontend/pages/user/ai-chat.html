@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI助手 - 体育场馆预约系统</title>
+    <link rel="stylesheet" href="../../assets/css/common.css">
+    <link rel="stylesheet" href="../../assets/css/user.css">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/dayjs@1.11.10/dayjs.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- 顶部导航 -->
+        <div class="header">
+            <div class="header-container">
+                <div class="logo">
+                    <i class="el-icon-trophy"></i>
+                    <span>体育场馆预约系统</span>
+                </div>
+                
+                <div class="nav-menu">
+                    <div class="nav-item" @click="goToPage('home')">
+                        <i class="el-icon-house"></i>
+                        首页
+                    </div>
+                    <div class="nav-item" @click="goToPage('facilities')">
+                        <i class="el-icon-office-building"></i>
+                        场馆列表
+                    </div>
+                    <div class="nav-item" @click="goToPage('profile')">
+                        <i class="el-icon-user"></i>
+                        个人中心
+                    </div>
+                    <div class="nav-item active">
+                        <i class="el-icon-chat-dot-round"></i>
+                        AI助手
+                    </div>
+                </div>
+                
+                <div class="user-info">
+                    <el-dropdown @command="handleUserCommand">
+                        <span class="user-dropdown">
+                            <el-avatar :src="userInfo.avatar" :size="32">
+                                {{ userInfo.real_name ? userInfo.real_name.charAt(0) : 'U' }}
+                            </el-avatar>
+                            <span class="username">{{ userInfo.real_name || userInfo.username }}</span>
+                            <i class="el-icon-arrow-down"></i>
+                        </span>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <div class="main-content">
+            <div class="ai-chat-page">
+                <!-- 页面标题 -->
+                <div class="page-header">
+                    <div class="container">
+                        <h1>
+                            <i class="el-icon-chat-dot-round"></i>
+                            AI智能助手
+                        </h1>
+                        <p>我是您的专属体育场馆预约助手，可以帮您解答问题、推荐场馆、协助预约</p>
+                    </div>
+                </div>
+
+                <!-- 聊天区域 -->
+                <div class="chat-section">
+                    <div class="container">
+                        <div class="chat-container">
+                            <!-- 聊天主区域 -->
+                            <div class="chat-main">
+                                <!-- 聊天消息区域 -->
+                                <div class="chat-messages" ref="chatMessages">
+                                    <div
+                                        v-for="message in messages"
+                                        :key="message.id"
+                                        class="message-item"
+                                        :class="{ 'user-message': message.type === 'user', 'ai-message': message.type === 'ai' }">
+                                        
+                                        <div v-if="message.type === 'ai'" class="message-avatar">
+                                            <el-avatar :size="40" style="background: var(--primary-color);">
+                                                <i class="el-icon-chat-dot-round"></i>
+                                            </el-avatar>
+                                        </div>
+                                        
+                                        <div class="message-content">
+                                            <div class="message-bubble">
+                                                <div v-if="message.type === 'ai'" class="message-header">
+                                                    <span class="message-sender">AI助手</span>
+                                                    <span class="message-time">{{ formatTime(message.timestamp) }}</span>
+                                                </div>
+                                                <div v-else class="message-header">
+                                                    <span class="message-sender">{{ userInfo.username || '您' }}</span>
+                                                    <span class="message-time">{{ formatTime(message.timestamp) }}</span>
+                                                </div>
+                                                <div class="message-text" v-html="formatMessage(message.content)"></div>
+                                            </div>
+                                            
+                                            <div v-if="message.actions && message.actions.length > 0" class="message-actions">
+                                                <el-button 
+                                                    v-for="action in message.actions" 
+                                                    :key="action.id"
+                                                    size="small" 
+                                                    type="primary" 
+                                                    plain
+                                                    @click="handleMessageAction(action)">
+                                                    {{ action.label }}
+                                                </el-button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div v-if="message.type === 'user'" class="message-avatar">
+                                            <el-avatar :size="40" :src="userInfo.avatar">
+                                                {{ userInfo.username ? userInfo.username.charAt(0).toUpperCase() : 'U' }}
+                                            </el-avatar>
+                                        </div>
+                                    </div>
+                                    
+                                    <div v-if="isTyping" class="message-item ai-message">
+                                        <div class="message-avatar">
+                                            <el-avatar :size="40" style="background: var(--primary-color);">
+                                                <i class="el-icon-chat-dot-round"></i>
+                                            </el-avatar>
+                                        </div>
+                                        <div class="message-content">
+                                            <div class="message-bubble">
+                                                <div class="message-header">
+                                                    <span class="message-sender">AI助手</span>
+                                                    <span class="message-time">{{ formatTime(new Date()) }}</span>
+                                                </div>
+                                                <div class="message-text typing-indicator">
+                                                    <span></span>
+                                                    <span></span>
+                                                    <span></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 输入区域 -->
+                                <div class="chat-input">
+                                    <el-input
+                                        v-model="inputMessage"
+                                        type="text"
+                                        placeholder="输入您的问题..."
+                                        @keyup.enter.native="sendMessage"
+                                        :disabled="isTyping">
+                                        <el-button 
+                                            slot="append" 
+                                            icon="el-icon-s-promotion" 
+                                            @click="sendMessage"
+                                            :disabled="isTyping">
+                                            发送
+                                        </el-button>
+                                    </el-input>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../utils/api.js"></script>
+    <script src="../../utils/auth.js"></script>
+    <script src="../../utils/mock.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    userInfo: {},
+                    inputMessage: '',
+                    isTyping: false,
+                    messages: [
+                        {
+                            id: 1,
+                            type: 'ai',
+                            content: '您好！我是您的专属体育场馆预约助手。我可以帮您：\n\n• 推荐合适的场馆\n• 查询场馆信息\n• 协助预约流程\n• 解答相关问题\n\n请问有什么可以帮助您的吗？',
+                            timestamp: new Date(),
+                            actions: [
+                                { id: 'recommend', label: '推荐场馆' },
+                                { id: 'search', label: '查询场馆' },
+                                { id: 'help', label: '使用帮助' }
+                            ]
+                        }
+                    ]
+                }
+            },
+            mounted() {
+                this.checkAuth();
+                this.loadUserInfo();
+                this.scrollToBottom();
+            },
+            methods: {
+                // 检查登录状态
+                checkAuth() {
+                    if (!Auth.requireUser()) {
+                        return;
+                    }
+                },
+                
+                // 加载用户信息
+                loadUserInfo() {
+                    this.userInfo = Auth.getUserInfo() || {};
+                },
+                
+                // 发送消息
+                sendMessage() {
+                    if (!this.inputMessage.trim() || this.isTyping) return;
+                    
+                    const userMessage = {
+                        id: Date.now(),
+                        type: 'user',
+                        content: this.inputMessage.trim(),
+                        timestamp: new Date()
+                    };
+                    
+                    this.messages.push(userMessage);
+                    const question = this.inputMessage.trim();
+                    this.inputMessage = '';
+                    
+                    this.scrollToBottom();
+                    this.generateAIResponse(question);
+                },
+                
+                // 发送快捷消息
+                sendQuickMessage(message) {
+                    this.inputMessage = message;
+                    this.sendMessage();
+                },
+                
+                // 生成AI回复
+                generateAIResponse(question) {
+                    this.isTyping = true;
+                    
+                    // 调用后端AI聊天API
+                    axios.post(`${API.baseURL}/external_apis/ai/chat/`, {
+                        message: question,
+                        session_id: localStorage.getItem('ai_session_id') || null
+                    })
+                    .then(response => {
+                        if (response.success) {
+                            // 保存会话ID
+                            localStorage.setItem('ai_session_id', response.data.session_id);
+                            
+                            // 创建AI回复消息
+                            const aiMessage = {
+                                id: Date.now(),
+                                type: 'ai',
+                                content: response.data.message,
+                                timestamp: new Date(),
+                                actions: this.getRecommendedActions(question, response.data.message)
+                            };
+                            
+                            this.messages.push(aiMessage);
+                        } else {
+                            // 处理API错误
+                            this.$message.error('获取AI回复失败: ' + response.message);
+                            
+                            // 使用本地回退方案
+                            const fallbackResponse = this.getAIResponse(question);
+                            const aiMessage = {
+                                id: Date.now(),
+                                type: 'ai',
+                                content: fallbackResponse.content,
+                                timestamp: new Date(),
+                                actions: fallbackResponse.actions
+                            };
+                            
+                            this.messages.push(aiMessage);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('AI聊天API调用失败:', error);
+                        this.$message.error('AI聊天服务暂时不可用，使用本地回复');
+                        
+                        // 使用本地回退方案
+                        const fallbackResponse = this.getAIResponse(question);
+                        const aiMessage = {
+                            id: Date.now(),
+                            type: 'ai',
+                            content: fallbackResponse.content,
+                            timestamp: new Date(),
+                            actions: fallbackResponse.actions
+                        };
+                        
+                        this.messages.push(aiMessage);
+                    })
+                    .finally(() => {
+                        this.isTyping = false;
+                        this.scrollToBottom();
+                    });
+                },
+                
+                // 根据问题和回复生成推荐操作
+                getRecommendedActions(question, response) {
+                    // 基于问题和回复内容智能推荐操作
+                    const q = question.toLowerCase();
+                    const r = response.toLowerCase();
+                    
+                    let actions = [];
+                    
+                    if (q.includes('推荐') || q.includes('场馆') || r.includes('推荐') || r.includes('场馆')) {
+                        actions.push({ id: 'view_facilities', label: '查看场馆' });
+                    }
+                    
+                    if (q.includes('预约') || q.includes('订场') || r.includes('预约') || r.includes('订场')) {
+                        actions.push({ id: 'book_now', label: '立即预约' });
+                    }
+                    
+                    if (q.includes('我的') || q.includes('订单') || r.includes('您的预约') || r.includes('订单')) {
+                        actions.push({ id: 'view_bookings', label: '查看我的预约' });
+                    }
+                    
+                    // 如果没有匹配到任何操作，添加默认操作
+                    if (actions.length === 0) {
+                        actions.push({ id: 'help', label: '使用帮助' });
+                    }
+                    
+                    return actions;
+                },
+                
+                // 获取AI回复内容
+                getAIResponse(question) {
+                    const q = question.toLowerCase();
+                    
+                    if (q.includes('推荐') || q.includes('场馆')) {
+                        return {
+                            content: '根据您的需求，我为您推荐以下热门场馆：\n\n**1号篮球场**\n• 价格：¥80/小时\n• 特色：专业木地板，设施完善\n• 适合：篮球比赛和训练\n\n**1号羽毛球场**\n• 价格：¥60/小时\n• 特色：进口地胶，灯光充足\n• 适合：羽毛球运动\n\n**标准游泳池**\n• 价格：¥40/小时\n• 特色：50米标准泳池，水质清洁\n• 适合：游泳健身',
+                            actions: [
+                                { id: 'view_facilities', label: '查看更多场馆' },
+                                { id: 'book_now', label: '立即预约' }
+                            ]
+                        };
+                    }
+                    
+                    if (q.includes('价格') || q.includes('费用')) {
+                        return {
+                            content: '各场馆价格如下：\n\n• **篮球场**：¥80/小时\n• **羽毛球场**：¥60/小时\n• **游泳池**：¥40/小时\n• **乒乓球室**：¥30/小时\n\n💡 **会员优惠**：\n• 普通会员：9折优惠\n• 黄金会员：8折优惠\n• 钻石会员：7折优惠',
+                            actions: [
+                                { id: 'view_membership', label: '了解会员' },
+                                { id: 'book_now', label: '立即预约' }
+                            ]
+                        };
+                    }
+                    
+                    if (q.includes('预约') || q.includes('流程')) {
+                        return {
+                            content: '预约流程很简单，只需3步：\n\n**1. 选择场馆**\n在场馆列表中选择您喜欢的场馆\n\n**2. 选择时间**\n选择合适的日期和时间段\n\n**3. 填写信息**\n填写预约人数、联系方式等信息并确认预约\n\n预约成功后，您会收到确认通知。',
+                            actions: [
+                                { id: 'start_booking', label: '开始预约' },
+                                { id: 'view_bookings', label: '查看我的预约' }
+                            ]
+                        };
+                    }
+                    
+                    if (q.includes('会员') || q.includes('优惠')) {
+                        return {
+                            content: '抱歉，目前我们暂未提供会员服务。',
+                            actions: [
+                                { id: 'view_facilities', label: '查看场馆' }
+                            ]
+                        };
+                    }
+                    
+                    if (q.includes('时间') || q.includes('营业')) {
+                        return {
+                            content: '场馆营业时间信息：\n\n**正常营业时间**\n每日 6:00 - 22:00\n\n**热门时段**\n• 早晨：6:00 - 9:00\n• 晚上：18:00 - 21:00\n\n**建议**\n为了确保能预约到心仪的时段，建议您提前1-2天预约，特别是周末和节假日。',
+                            actions: [
+                                { id: 'check_availability', label: '查看可用时段' },
+                                { id: 'book_now', label: '立即预约' }
+                            ]
+                        };
+                    }
+                    
+                    if (q.includes('取消') || q.includes('退款')) {
+                        return {
+                            content: '关于取消预约：\n\n**取消规则**\n• 预约开始前24小时可免费取消\n• 预约开始前2-24小时取消收取20%手续费\n• 预约开始前2小时内不可取消\n\n**取消方式**\n1. 进入个人中心\n2. 找到对应的预约记录\n3. 点击"取消预约"按钮\n\n退款将在3-5个工作日内原路返回。',
+                            actions: [
+                                { id: 'view_bookings', label: '查看我的预约' },
+                                { id: 'contact_service', label: '联系客服' }
+                            ]
+                        };
+                    }
+                    
+                    // 默认回复
+                    return {
+                        content: '感谢您的提问！我正在努力理解您的需求。\n\n您可以尝试询问：\n• 场馆推荐\n• 价格查询\n• 预约流程\n• 会员优惠\n• 营业时间\n• 取消预约\n\n或者点击左侧的快捷功能按钮获取帮助。',
+                        actions: [
+                            { id: 'recommend', label: '推荐场馆' },
+                            { id: 'help', label: '使用帮助' }
+                        ]
+                    };
+                },
+                
+                // 处理消息操作
+                handleMessageAction(action) {
+                    switch (action.id) {
+                        case 'recommend':
+                            this.sendQuickMessage('请为我推荐一些热门的体育场馆');
+                            break;
+                        case 'search':
+                            this.goToPage('facilities');
+                            break;
+                        case 'help':
+                            this.sendQuickMessage('如何使用这个系统？');
+                            break;
+                        case 'view_facilities':
+                            this.goToPage('facilities');
+                            break;
+                        case 'book_now':
+                            this.goToPage('facilities');
+                            break;
+                        case 'start_booking':
+                            this.goToPage('facilities');
+                            break;
+                        case 'view_bookings':
+                            this.goToPage('profile');
+                            break;
+                        case 'view_membership':
+                        case 'buy_membership':
+                        case 'view_benefits':
+                            this.$message.info('会员功能已下线');
+                            break;
+                        case 'check_availability':
+                            this.goToPage('facilities');
+                            break;
+                        case 'contact_service':
+                            this.$message.info('客服功能开发中');
+                            break;
+                        default:
+                            this.$message.info('功能开发中');
+                    }
+                },
+                
+                // 格式化消息内容
+                formatMessage(content) {
+                    return content
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\n/g, '<br>')
+                        .replace(/•/g, '&bull;');
+                },
+                
+                // 格式化时间
+                formatTime(timestamp) {
+                    return dayjs(timestamp).format('HH:mm');
+                },
+                
+                // 滚动到底部
+                scrollToBottom() {
+                    this.$nextTick(() => {
+                        const chatMessages = this.$refs.chatMessages;
+                        if (chatMessages) {
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                        }
+                    });
+                },
+                
+                // 页面跳转
+                goToPage(page) {
+                    const pageMap = {
+                        home: 'home.html',
+                        facilities: 'facilities.html',
+                        profile: 'profile.html'
+                    };
+                    if (pageMap[page]) {
+                        window.location.href = pageMap[page];
+                    }
+                },
+                
+                // 处理用户下拉菜单命令
+                handleUserCommand(command) {
+                    switch (command) {
+                        case 'logout':
+                            this.handleLogout();
+                            break;
+                    }
+                },
+                
+                // 处理退出登录
+                handleLogout() {
+                    this.$confirm('确定要退出登录吗？', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        Auth.logout();
+                        this.$message.success('已退出登录');
+                        window.location.href = '../../index.html';
+                    }).catch(() => {});
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+

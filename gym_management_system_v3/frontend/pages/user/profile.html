@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人中心 - 体育场馆预约系统</title>
+    <link rel="stylesheet" href="../../assets/css/common.css">
+    <link rel="stylesheet" href="../../assets/css/user.css">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/dayjs@1.11.10/dayjs.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- 顶部导航 -->
+        <div class="header">
+            <div class="header-container">
+                <div class="logo">
+                    <i class="el-icon-trophy"></i>
+                    <span>体育场馆预约系统</span>
+                </div>
+                
+                <div class="nav-menu">
+                    <div class="nav-item" @click="goToPage('home')">
+                        <i class="el-icon-house"></i>
+                        首页
+                    </div>
+                    <div class="nav-item" @click="goToPage('facilities')">
+                        <i class="el-icon-office-building"></i>
+                        场馆列表
+                    </div>
+                    <div class="nav-item active">
+                        <i class="el-icon-user"></i>
+                        个人中心
+                    </div>
+                    <div class="nav-item" @click="goToPage('ai')">
+                        <i class="el-icon-chat-dot-round"></i>
+                        AI助手
+                    </div>
+                </div>
+                
+                <div class="user-info">
+                    <el-dropdown @command="handleUserCommand">
+                        <span class="user-dropdown">
+                            <el-avatar :src="userInfo.avatar" :size="32">
+                                {{ userInfo.real_name ? userInfo.real_name.charAt(0) : 'U' }}
+                            </el-avatar>
+                            <span class="username">{{ userInfo.real_name || userInfo.username }}</span>
+                            <i class="el-icon-arrow-down"></i>
+                        </span>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item command="profile">个人资料</el-dropdown-item>
+                            <el-dropdown-item command="settings">设置</el-dropdown-item>
+                            <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <div class="main-content">
+            <div class="profile-page">
+                <!-- 用户信息卡片 -->
+                <div class="user-profile-section">
+                    <div class="container">
+                        <div class="user-profile-card">
+                            <div class="profile-header">
+                                <div class="avatar-section">
+                                    <el-avatar :src="userInfo.avatar" :size="80">
+                                        {{ userInfo.real_name ? userInfo.real_name.charAt(0) : 'U' }}
+                                    </el-avatar>
+                                    <el-button type="text" @click="showAvatarUpload = true">
+                                        <i class="el-icon-camera"></i>
+                                        更换头像
+                                    </el-button>
+                                </div>
+                                <div class="profile-info">
+                                    <h2>{{ userInfo.real_name || userInfo.username }}</h2>
+                                    <p class="user-type">普通用户</p>
+                                    <p class="join-date">加入时间：{{ formatDate(userInfo.create_time) }}</p>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 会员状态 -->
+                <!-- 删除会员状态区域 -->
+
+                <!-- 功能导航 -->
+                <div class="function-nav-section">
+                    <div class="container">
+                        <div class="function-nav">
+                            <div
+                                v-for="tab in tabs"
+                                :key="tab.key"
+                                class="nav-tab"
+                                :class="{ active: activeTab === tab.key }"
+                                @click="activeTab = tab.key">
+                                <i :class="tab.icon"></i>
+                                <span>{{ tab.label }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 内容区域 -->
+                <div class="content-section">
+                    <div class="container">
+                        <!-- 预约记录 -->
+                        <div v-if="activeTab === 'bookings'" class="bookings-content">
+                            <div class="section-header">
+                                <h3>我的预约</h3>
+                                <el-radio-group v-model="bookingFilter" size="small">
+                                    <el-radio-button label="all">全部</el-radio-button>
+                        <el-radio-button label="pending">待确定</el-radio-button>
+                        <el-radio-button label="confirmed">已确定</el-radio-button>
+                        <el-radio-button label="completed">已完成</el-radio-button>
+                                </el-radio-group>
+                            </div>
+                            
+                            <div class="bookings-list">
+                                <div
+                                    v-for="booking in filteredBookings"
+                                    :key="booking.booking_id"
+                                    class="booking-item">
+                                    <div class="booking-image">
+                                        <img :src="booking.facility_image" :alt="booking.facility_name">
+                                    </div>
+                                    <div class="booking-info">
+                                        <h4>{{ booking.facility_name }}</h4>
+                                        <p class="booking-time">
+                                            <i class="el-icon-time"></i>
+                                            {{ booking.booking_date }} {{ booking.start_time }}-{{ booking.end_time }}
+                                        </p>
+                                        <p class="booking-location">
+                                            <i class="el-icon-location"></i>
+                                            {{ booking.facility_location }}
+                                        </p>
+                                        <p class="booking-people">
+                                            <i class="el-icon-user"></i>
+                                            {{ booking.person_count }}人
+                                        </p>
+                                    </div>
+                                    <div class="booking-status">
+                                        <el-tag :type="getBookingStatusType(booking.status)">
+                                            {{ getBookingStatusText(booking.status) }}
+                                        </el-tag>
+                                        <div class="booking-price">¥{{ booking.actual_amount }}</div>
+                                    </div>
+                                    <div class="booking-actions">
+                                        <el-button
+                                            v-if="booking.status === 0"
+                                            type="warning"
+                                            size="small"
+                                            @click="confirmBooking(booking.booking_id)">
+                                            确定
+                                        </el-button>
+                                        <el-button
+                                            v-if="booking.status === 0"
+                                            type="danger"
+                                            size="small"
+                                            @click="cancelBooking(booking.booking_id)">
+                                            取消预约
+                                        </el-button>
+
+                                        <el-button
+                                            v-if="canCheckin(booking)"
+                                            type="success"
+                                            size="small"
+                                            @click="checkinBooking(booking.booking_id)">
+                                            签到
+                                        </el-button>
+                                        <el-button
+                                            v-if="booking.status === 2 && !booking.reviewed"
+                                            type="primary"
+                                            size="small"
+                                            @click="showReviewDialog(booking)">
+                                            评价
+                                        </el-button>
+                                        <el-button
+                                            type="text"
+                                            size="small"
+                                            @click="viewBookingDetail(booking.booking_id)">
+                                            查看详情
+                                        </el-button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 订单历史 -->
+                        <!-- 订单历史功能已删除 -->
+
+                        <!-- 个人信息 -->
+                        <div v-if="activeTab === 'profile'" class="profile-content">
+                            <div class="section-header">
+                                <h3>个人信息</h3>
+                                <el-button type="primary" @click="editMode = !editMode">
+                                    {{ editMode ? '取消编辑' : '编辑信息' }}
+                                </el-button>
+                            </div>
+                            
+                            <el-form :model="profileForm" :rules="profileRules" ref="profileForm" label-width="100px">
+                                <el-form-item label="真实姓名" prop="real_name">
+                                    <el-input
+                                        v-model="profileForm.real_name"
+                                        :disabled="!editMode"
+                                        placeholder="请输入真实姓名">
+                                    </el-input>
+                                </el-form-item>
+                                
+                                <el-form-item label="手机号码" prop="phone">
+                                    <el-input
+                                        v-model="profileForm.phone"
+                                        :disabled="!editMode"
+                                        placeholder="请输入手机号码">
+                                    </el-input>
+                                </el-form-item>
+                                
+                                <el-form-item label="邮箱地址" prop="email">
+                                    <el-input
+                                        v-model="profileForm.email"
+                                        :disabled="!editMode"
+                                        placeholder="请输入邮箱地址">
+                                    </el-input>
+                                </el-form-item>
+                                
+                                <el-form-item v-if="editMode">
+                                    <el-button type="primary" @click="saveProfile">保存修改</el-button>
+                                    <el-button @click="resetProfile">重置</el-button>
+                                </el-form-item>
+                            </el-form>
+                        </div>
+
+                        <!-- 设置 -->
+                        <div v-if="activeTab === 'settings'" class="settings-content">
+                            <div class="section-header">
+                                <h3>账户设置</h3>
+                            </div>
+                            
+                            <div class="settings-list">
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <h4>修改密码</h4>
+                                        <p>定期修改密码，保护账户安全</p>
+                                    </div>
+                                    <el-button type="primary" @click="openPasswordDialog">
+                                        修改密码
+                                    </el-button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 评价对话框 -->
+        <el-dialog
+            title="评价场馆"
+            :visible.sync="reviewDialogVisible"
+            width="500px">
+            <el-form :model="reviewForm" label-width="80px">
+                <el-form-item label="评分">
+                    <el-rate v-model="reviewForm.rating" show-text></el-rate>
+                </el-form-item>
+                <el-form-item label="评价内容">
+                    <el-input
+                        v-model="reviewForm.content"
+                        type="textarea"
+                        :rows="4"
+                        placeholder="请输入您的评价"
+                        maxlength="200"
+                        show-word-limit>
+                    </el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer">
+                <el-button @click="reviewDialogVisible = false">取消</el-button>
+                <el-button type="primary" @click="submitReview">提交评价</el-button>
+            </div>
+        </el-dialog>
+
+        <!-- 修改密码对话框 -->
+        <el-dialog
+            title="修改密码"
+            :visible.sync="showPasswordDialog"
+            width="400px">
+            <el-form :model="passwordForm" :rules="passwordRules" ref="passwordForm" label-width="100px">
+                <el-form-item label="当前密码" prop="oldPassword">
+                    <el-input
+                        v-model="passwordForm.oldPassword"
+                        type="password"
+                        placeholder="请输入当前密码">
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="新密码" prop="newPassword">
+                    <el-input
+                        v-model="passwordForm.newPassword"
+                        type="password"
+                        placeholder="请输入新密码">
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="确认密码" prop="confirmPassword">
+                    <el-input
+                        v-model="passwordForm.confirmPassword"
+                        type="password"
+                        placeholder="请再次输入新密码">
+                    </el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer">
+                <el-button @click="showPasswordDialog = false">取消</el-button>
+                <el-button type="primary" @click="changePassword">确认修改</el-button>
+            </div>
+        </el-dialog>
+    </div>
+
+    <script src="../../utils/api.js"></script>
+    <script src="../../utils/auth.js"></script>
+    <script src="../../utils/mock.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    userInfo: {},
+
+                    activeTab: 'bookings',
+                    bookingFilter: 'all',
+                    // 订单相关数据已删除
+                    editMode: false,
+                    showAvatarUpload: false,
+                    reviewDialogVisible: false,
+                    showPasswordDialog: false,
+                    currentReviewBooking: null,
+                    bookings: [],
+                    // 订单数据已删除
+                    settings: {
+                    },
+                    tabs: [
+                        { key: 'bookings', label: '预约记录', icon: 'el-icon-tickets' },
+                        // 订单历史标签页已删除
+                        { key: 'profile', label: '个人信息', icon: 'el-icon-user' },
+                        { key: 'settings', label: '设置', icon: 'el-icon-setting' }
+                    ],
+                    profileForm: {
+                        real_name: '',
+                        phone: '',
+                        email: ''
+                    },
+                    profileRules: {
+                        real_name: [
+                            { required: true, message: '请输入真实姓名', trigger: 'blur' }
+                        ],
+                        phone: [
+                            { required: true, message: '请输入手机号码', trigger: 'blur' },
+                            { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
+                        ],
+                        email: [
+                            { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
+                        ]
+                    },
+                    reviewForm: {
+                        rating: 5,
+                        content: ''
+                    },
+                    passwordForm: {
+                        oldPassword: '',
+                        newPassword: '',
+                        confirmPassword: ''
+                    },
+                    passwordRules: {
+                        oldPassword: [
+                            { required: true, message: '请输入当前密码', trigger: 'blur' }
+                        ],
+                        newPassword: [
+                            { required: true, message: '请输入新密码', trigger: 'blur' },
+                            { min: 6, message: '密码长度不能少于6位', trigger: 'blur' }
+                        ],
+                        confirmPassword: [
+                            { required: true, message: '请再次输入新密码', trigger: 'blur' },
+                            { validator: this.validateConfirmPassword, trigger: 'blur' }
+                        ]
+                    }
+                }
+            },
+            computed: {
+                filteredBookings() {
+                    if (this.bookingFilter === 'all') {
+                        return this.bookings;
+                    }
+                    const statusMap = {
+                        pending: 0,
+                        confirmed: 1,
+                        completed: 2
+                    };
+                    return this.bookings.filter(booking => booking.status === statusMap[this.bookingFilter]);
+                },
+                
+                // 订单过滤计算属性已删除
+            },
+            mounted() {
+                this.checkAuth();
+                this.loadUserData();
+            },
+            methods: {
+                // 检查登录状态
+                checkAuth() {
+                    if (!Auth.requireUser()) {
+                        return;
+                    }
+                },
+                
+                // 加载用户数据
+                loadUserData() {
+                    // 加载用户信息
+                    api.auth.getUserInfo().then(response => {
+                        if (response.success) {
+                            this.userInfo = response.data;
+                            this.profileForm = {
+                                real_name: this.userInfo.real_name || '',
+                                phone: this.userInfo.phone || '',
+                                email: this.userInfo.email || ''
+                            };
+
+                            // 加载预约记录
+                            this.loadBookings();
+                        } else {
+                            this.$message.error('加载用户信息失败');
+                        }
+                    }).catch(error => {
+                        console.error('加载用户信息失败:', error);
+                        this.$message.error('加载用户信息失败');
+                    });
+                },
+                
+
+                
+                // 加载预约记录
+                loadBookings() {
+                    api.bookings.getUserBookings().then(response => {
+                        if (response.success) {
+                            this.bookings = response.data;
+                        } else {
+                            this.$message.error('加载预约记录失败');
+                        }
+                    }).catch(error => {
+                        console.error('加载预约记录失败:', error);
+                        this.$message.error('加载预约记录失败');
+                    });
+                },
+                
+                // 获取预约状态类型
+                getBookingStatusType(status) {
+                    const typeMap = {
+                        0: 'warning',
+                        1: 'primary',
+                        2: 'success',
+                        3: 'info',
+                        4: 'danger',
+                        5: 'info'
+                    };
+                    return typeMap[status] || 'info';
+                },
+                
+                // 判断是否可以签到
+                canCheckin(booking) {
+                    // 状态为已确认(1)即可签到，无时间限制
+                    return booking.status === 1;
+                },
+                
+                // 获取预约状态文本
+                getBookingStatusText(status) {
+                    const textMap = {
+                        0: '待确定',
+                        1: '已确定',
+                        2: '已完成'
+                    };
+                    return textMap[status] || '未知';
+                },
+                
+
+                
+                // 签到预约
+                async checkinBooking(bookingId) {
+                    try {
+                        await api.bookings.checkin(bookingId);
+                        this.$message.success('签到成功');
+                        this.loadBookings();
+                    } catch (error) {
+                        console.error('签到失败:', error);
+                        this.$message.error('签到失败');
+                    }
+                },
+                
+                // 完成预约
+                async completeBooking(bookingId) {
+                    try {
+                        const result = await this.$confirm('确定要完成这个预约吗？', '提示', {
+                            confirmButtonText: '确定',
+                            cancelButtonText: '取消',
+                            type: 'info'
+                        });
+                        
+                        if (result) {
+                            await api.bookings.complete(bookingId);
+                            this.$message.success('预约已完成');
+                            this.loadBookings();
+                        }
+                    } catch (error) {
+                        if (error !== 'cancel') {
+                            console.error('完成预约失败:', error);
+                            this.$message.error('完成预约失败');
+                        }
+                    }
+                },
+                
+                // 确定预约
+                async confirmBooking(bookingId) {
+                    try {
+                        const result = await this.$confirm('确定要确定这个预约吗？', '提示', {
+                            confirmButtonText: '确定',
+                            cancelButtonText: '取消',
+                            type: 'warning'
+                        });
+                        
+                        if (result) {
+                            await api.bookings.confirm(bookingId);
+                            this.$message.success('预约已确定');
+                            this.loadBookings();
+                        }
+                    } catch (error) {
+                        if (error !== 'cancel') {
+                            console.error('确定预约失败:', error);
+                            this.$message.error('确定预约失败');
+                        }
+                    }
+                },
+                
+                // 取消预约
+                async cancelBooking(bookingId) {
+                    try {
+                        const result = await this.$confirm('确定要取消这个预约吗？取消后预约将被删除。', '提示', {
+                            confirmButtonText: '确定',
+                            cancelButtonText: '取消',
+                            type: 'warning'
+                        });
+                        
+                        if (result) {
+                            await api.bookings.cancel(bookingId);
+                            this.$message.success('预约已取消');
+                            this.loadBookings();
+                        }
+                    } catch (error) {
+                        if (error !== 'cancel') {
+                            console.error('取消预约失败:', error);
+                            this.$message.error('取消预约失败');
+                        }
+                    }
+                },
+                
+                // 显示评价对话框
+                showReviewDialog(booking) {
+                    this.currentReviewBooking = booking;
+                    this.reviewForm = {
+                        rating: 5,
+                        content: ''
+                    };
+                    this.reviewDialogVisible = true;
+                },
+                
+                // 提交评价
+                async submitReview() {
+                    if (!this.reviewForm.content.trim()) {
+                        this.$message.error('请输入评价内容');
+                        return;
+                    }
+                    
+                    if (!this.reviewForm.rating) {
+                        this.$message.error('请选择评分');
+                        return;
+                    }
+                    
+                    try {
+                        const reviewData = {
+                            booking_id: this.currentReviewBooking.booking_id,
+                            rating: this.reviewForm.rating,
+                            content: this.reviewForm.content
+                        };
+                        
+                        console.log('发送的评价数据:', reviewData);
+                        
+                        const response = await api.reviews.create(reviewData);
+                        console.log('评价提交响应:', response);
+                        
+                        // 检查响应是否成功
+                        if (response && response.success) {
+                            this.$message.success(response.message || '评价提交成功');
+                            this.reviewDialogVisible = false;
+                            // 标记该预约已评价
+                            this.currentReviewBooking.reviewed = true;
+                            this.loadBookings();
+                        } else {
+                            console.error('评价提交失败，响应:', response);
+                            this.$message.error(response.message || '评价提交失败');
+                        }
+                    } catch (error) {
+                        console.error('评价提交失败，完整错误:', error);
+                        
+                        // 如果数据已经成功提交到后端，我们应该显示成功消息
+                        if (error.response && error.response.status === 200) {
+                            this.$message.success('评价提交成功');
+                            this.reviewDialogVisible = false;
+                            this.currentReviewBooking.reviewed = true;
+                            this.loadBookings();
+                            return;
+                        }
+                        
+                        if (error.response && error.response.data) {
+                            if (error.response.data.message) {
+                                this.$message.error(error.response.data.message);
+                            } else if (error.response.data.errors) {
+                                const errors = error.response.data.errors;
+                                const errorMessages = [];
+                                for (const field in errors) {
+                                    if (Array.isArray(errors[field])) {
+                                        errorMessages.push(...errors[field]);
+                                    } else {
+                                        errorMessages.push(errors[field]);
+                                    }
+                                }
+                                this.$message.error(errorMessages.join(', '));
+                            } else {
+                                this.$message.error('评价提交失败，请稍后重试');
+                            }
+                        } else {
+                            this.$message.error('评价提交失败，请稍后重试');
+                        }
+                    }
+                },
+                
+                // 查看预约详情
+                viewBookingDetail(bookingId) {
+                    this.$message.info('预约详情功能开发中');
+                },
+                
+                // 保存个人信息
+                saveProfile() {
+                    this.$refs.profileForm.validate((valid) => {
+                        if (!valid) return false;
+                        
+                        // 调用API更新个人信息
+                        api.auth.updateProfile(this.profileForm)
+                            .then(response => {
+                                if (response.success) {
+                                    this.$message.success('个人信息保存成功');
+                                    this.editMode = false;
+                                    
+                                    // 更新本地用户信息
+                                    Object.assign(this.userInfo, this.profileForm);
+                                    Auth.updateUserInfo(this.profileForm);
+                                } else {
+                                    this.$message.error(response.message || '保存失败');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('保存个人信息失败:', error);
+                                this.$message.error(error.response?.data?.message || '保存失败，请稍后重试');
+                            });
+                    });
+                },
+                
+                // 重置个人信息
+                resetProfile() {
+                    this.profileForm = {
+                        real_name: this.userInfo.real_name || '',
+                        phone: this.userInfo.phone || '',
+                        email: this.userInfo.email || ''
+                    };
+                },
+                
+                // 修改密码
+                changePassword() {
+                    this.$refs.passwordForm.validate((valid) => {
+                        if (!valid) return false;
+                        
+                        console.log('开始修改密码');
+                        console.log('表单数据:', this.passwordForm);
+                        
+                        // 调用API修改密码
+                        api.auth.changePassword({
+                            old_password: this.passwordForm.oldPassword,
+                            new_password: this.passwordForm.newPassword,
+                            confirm_password: this.passwordForm.confirmPassword
+                        })
+                        .then(response => {
+                            console.log('密码修改响应:', response);
+                            // 检查响应数据，使用更灵活的成功条件判断
+                            if (response && (response.success || (response.data && response.data.success))) {
+                                this.$message.success(response.message || response.data?.message || '密码修改成功，请重新登录');
+                                this.showPasswordDialog = false;
+                                // 清空表单
+                                this.passwordForm = {
+                                    oldPassword: '',
+                                    newPassword: '',
+                                    confirmPassword: ''
+                                };
+                                // 退出登录
+                                setTimeout(() => {
+                                    Auth.logout();
+                                    window.location.href = '../../index.html';
+                                }, 1500);
+                            } else {
+                                const errorMsg = response.message || response.data?.message || '密码修改失败';
+                                console.error('密码修改失败:', errorMsg);
+                                this.$message.error(errorMsg);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('修改密码失败:', error);
+                            console.error('错误响应:', error.response);
+                            console.error('错误数据:', error.response?.data);
+                            
+                            // 特殊处理HTTP 200状态码的情况
+                            if (error.response && error.response.status === 200) {
+                                this.$message.success('密码修改成功，请重新登录');
+                                this.showPasswordDialog = false;
+                                // 清空表单
+                                this.passwordForm = {
+                                    oldPassword: '',
+                                    newPassword: '',
+                                    confirmPassword: ''
+                                };
+                                // 退出登录
+                                setTimeout(() => {
+                                    Auth.logout();
+                                    window.location.href = '../../index.html';
+                                }, 1500);
+                                return;
+                            }
+                            
+                            let errorMsg = '修改密码失败，请稍后重试';
+                            
+                            if (error.response?.data?.errors) {
+                                const errors = error.response.data.errors;
+                                const errorMessages = [];
+                                
+                                if (errors.old_password) {
+                                    errorMessages.push(errors.old_password[0]);
+                                }
+                                if (errors.new_password) {
+                                    errorMessages.push(errors.new_password[0]);
+                                }
+                                if (errors.confirm_password) {
+                                    errorMessages.push(errors.confirm_password[0]);
+                                }
+                                
+                                if (errorMessages.length > 0) {
+                                    errorMsg = errorMessages.join('；');
+                                }
+                            } else if (error.response?.data?.message) {
+                                errorMsg = error.response.data.message;
+                            }
+                            
+                            this.$message.error(errorMsg);
+                        });
+                    });
+                },
+                
+                // 验证确认密码
+                validateConfirmPassword(rule, value, callback) {
+                    if (value !== this.passwordForm.newPassword) {
+                        callback(new Error('两次输入的密码不一致'));
+                    } else {
+                        callback();
+                    }
+                },
+                
+                // 打开修改密码对话框
+                openPasswordDialog() {
+                    this.showPasswordDialog = true;
+                    this.passwordForm = {
+                        oldPassword: '',
+                        newPassword: '',
+                        confirmPassword: ''
+                    };
+                },
+                
+                // 格式化日期
+                formatDate(dateString) {
+                    return dayjs(dateString).format('YYYY-MM-DD');
+                },
+                
+                // 页面跳转
+                goToPage(page) {
+                    const pageMap = {
+                        home: 'home.html',
+                        facilities: 'facilities.html',
+                        ai: 'ai-chat.html'
+                    };
+                    if (pageMap[page]) {
+                        window.location.href = pageMap[page];
+                    }
+                },
+                
+                // 处理用户下拉菜单命令
+                handleUserCommand(command) {
+                    switch (command) {
+                        case 'profile':
+                            this.activeTab = 'profile';
+                            break;
+                        case 'settings':
+                            this.activeTab = 'settings';
+                            break;
+                        case 'logout':
+                            this.handleLogout();
+                            break;
+                    }
+                },
+                
+                // 处理退出登录
+                handleLogout() {
+                    this.$confirm('确定要退出登录吗？', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        Auth.logout();
+                        this.$message.success('已退出登录');
+                        window.location.href = '../../index.html';
+                    }).catch(() => {});
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+

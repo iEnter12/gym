@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据仪表盘 - 体育场馆预约系统</title>
+    <link rel="stylesheet" href="../../assets/css/common.css">
+    <link rel="stylesheet" href="../../assets/css/admin.css">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/dayjs@1.11.10/dayjs.min.js"></script>
+    <script src="../../utils/auth.js"></script>
+    <script src="../../utils/api.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- 侧边栏 -->
+        <div class="admin-sidebar" :class="{ collapsed: sidebarCollapsed }">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="el-icon-trophy"></i>
+                    <span v-if="!sidebarCollapsed">管理后台</span>
+                </div>
+                <el-button
+                    type="text"
+                    @click="sidebarCollapsed = !sidebarCollapsed"
+                    class="collapse-btn">
+                    <i :class="sidebarCollapsed ? 'el-icon-s-unfold' : 'el-icon-s-fold'"></i>
+                </el-button>
+            </div>
+            
+            <div class="sidebar-menu">
+                <el-menu
+                    :default-active="activeMenu"
+                    :collapse="sidebarCollapsed"
+                    background-color="#2c3e50"
+                    text-color="#ecf0f1"
+                    active-text-color="#3498db">
+                    
+                    <el-menu-item index="dashboard" @click="goToPage('dashboard')">
+                        <i class="el-icon-data-analysis"></i>
+                        <span slot="title">数据仪表盘</span>
+                    </el-menu-item>
+                    
+                    <el-menu-item index="facilities" @click="goToPage('facilities')">
+                        <i class="el-icon-office-building"></i>
+                        <span slot="title">场馆管理</span>
+                    </el-menu-item>
+                    
+                    <el-menu-item index="bookings" @click="goToPage('bookings')">
+                        <i class="el-icon-tickets"></i>
+                        <span slot="title">预约管理</span>
+                    </el-menu-item>
+                </el-menu>
+            </div>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <div class="admin-main" :class="{ expanded: sidebarCollapsed }">
+            <!-- 顶部导航 -->
+            <div class="admin-header">
+                <div class="header-left">
+                    <h1>数据仪表盘</h1>
+                    <span class="page-desc">系统运营数据概览</span>
+                </div>
+                
+                <div class="header-right">
+                    <el-dropdown @command="handleUserCommand">
+                        <span class="user-dropdown">
+                            <el-avatar :size="32" :src="adminInfo.avatar">
+                                <i class="el-icon-user-solid"></i>
+                            </el-avatar>
+                            <span class="admin-name">{{ adminInfo.username || '管理员' }}</span>
+                            <i class="el-icon-arrow-down"></i>
+                        </span>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </div>
+            </div>
+
+            <!-- 仪表盘内容 -->
+            <div class="dashboard-content">
+                <!-- 统计卡片 -->
+                <div class="metrics-section">
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-icon" style="background: #3498db;">
+                                <i class="el-icon-office-building"></i>
+                            </div>
+                            <div class="metric-info">
+                                <div class="metric-value">{{ stats.facilities.total }}</div>
+                                <div class="metric-label">总场馆数</div>
+                                <div class="metric-change neutral">
+                                    <i class="el-icon-minus"></i>
+                                    0%
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-icon" style="background: #2ecc71;">
+                                <i class="el-icon-check"></i>
+                            </div>
+                            <div class="metric-info">
+                                <div class="metric-value">{{ stats.facilities.available }}</div>
+                                <div class="metric-label">可用场馆</div>
+                                <div class="metric-change neutral">
+                                    <i class="el-icon-minus"></i>
+                                    0%
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-icon" style="background: #f39c12;">
+                                <i class="el-icon-tickets"></i>
+                            </div>
+                            <div class="metric-info">
+                                <div class="metric-value">{{ stats.bookings.today }}</div>
+                                <div class="metric-label">今日预约</div>
+                                <div class="metric-change neutral">
+                                    <i class="el-icon-minus"></i>
+                                    0%
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-icon" style="background: #e74c3c;">
+                                <i class="el-icon-date"></i>
+                            </div>
+                            <div class="metric-info">
+                                <div class="metric-value">{{ stats.bookings.week }}</div>
+                                <div class="metric-label">本周预约</div>
+                                <div class="metric-change neutral">
+                                    <i class="el-icon-minus"></i>
+                                    0%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 预约状态分布 -->
+                <div class="chart-section">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                            <h3>预约状态分布</h3>
+                        </div>
+                        <div class="chart-content">
+                            <el-table
+                                :data="bookingStatusData"
+                                style="width: 100%">
+                                <el-table-column prop="status" label="状态" width="120">
+                                    <template slot-scope="scope">
+                                        <el-tag :type="getStatusTagType(scope.row.status)">
+                                            {{ scope.row.statusText }}
+                                        </el-tag>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="count" label="数量" width="120"></el-table-column>
+                                <el-table-column prop="percentage" label="占比">
+                                    <template slot-scope="scope">
+                                        <el-progress
+                                            :percentage="scope.row.percentage"
+                                            :color="getStatusColor(scope.row.status)">
+                                        </el-progress>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 最近预约记录 -->
+                <div class="recent-section">
+                    <div class="recent-card">
+                        <div class="recent-header">
+                            <h3>最近预约记录</h3>
+                            <el-button type="text" @click="goToPage('bookings')">查看全部</el-button>
+                        </div>
+                        <div class="recent-content">
+                            <el-table
+                                :data="recentBookings"
+                                style="width: 100%"
+                                v-loading="loading">
+                                <el-table-column prop="booking_id" label="预约ID" width="80"></el-table-column>
+                                <el-table-column prop="facility_name" label="场馆名称" min-width="150"></el-table-column>
+                                <el-table-column prop="booking_date" label="预约日期" width="120">
+                                    <template slot-scope="scope">
+                                        {{ formatDate(scope.row.booking_date) }}
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="预约时间" width="180">
+                                    <template slot-scope="scope">
+                                        {{ scope.row.start_time }} - {{ scope.row.end_time }}
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="status" label="状态" width="100">
+                                    <template slot-scope="scope">
+                                        <el-tag :type="getStatusTagType(scope.row.status)">
+                                            {{ getStatusText(scope.row.status) }}
+                                        </el-tag>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    // 侧边栏
+                    sidebarCollapsed: false,
+                    activeMenu: 'dashboard',
+                    
+                    // 管理员信息
+                    adminInfo: {
+                        username: '',
+                        avatar: ''
+                    },
+                    
+                    // 统计数据
+                    stats: {
+                        facilities: {
+                            total: 0,
+                            available: 0
+                    },
+                        bookings: {
+                            today: 0,
+                            week: 0
+                        }
+                    },
+                    
+                    // 预约状态数据
+                    bookingStatusData: [],
+                    
+                    // 最近预约记录
+                    recentBookings: [],
+                    loading: false
+                };
+            },
+            created() {
+                this.loadAdminInfo();
+                this.loadDashboardData();
+            },
+            methods: {
+                // 加载管理员信息
+                loadAdminInfo() {
+                    const adminInfo = Auth.getUserInfo();
+                    if (adminInfo) {
+                        this.adminInfo = adminInfo;
+                    }
+                },
+                
+                // 加载仪表盘数据
+                loadDashboardData() {
+                    this.loading = true;
+                    
+                    // 加载场馆统计
+                    api.facilities.getList()
+                        .then(response => {
+                            const facilities = response.results || response.data?.results || response.data || [];
+                            this.stats.facilities.total = facilities.length;
+                            this.stats.facilities.available = facilities.filter(f => f.status === 1).length;
+                        })
+                        .catch(error => {
+                            console.error('获取场馆统计失败:', error);
+                        });
+                    
+                    // 加载预约统计
+                    const today = dayjs().format('YYYY-MM-DD');
+                    const weekStart = dayjs().startOf('week').format('YYYY-MM-DD');
+                    const weekEnd = dayjs().endOf('week').format('YYYY-MM-DD');
+                    
+                    Promise.all([
+                        // 获取今日预约
+                        api.bookings.getList({ 
+                            page: 1, 
+                            page_size: 100,
+                            date: today
+                        }),
+                        // 获取本周预约
+                        api.bookings.getList({ 
+                            page: 1, 
+                            page_size: 100,
+                            date_start: weekStart,
+                            date_end: weekEnd
+                        })
+                    ]).then(([todayResponse, weekResponse]) => {
+                        const todayBookings = todayResponse.results || todayResponse.data?.results || todayResponse.data || [];
+                        const weekBookings = weekResponse.results || weekResponse.data?.results || weekResponse.data || [];
+                        
+                        this.stats.bookings.today = todayBookings.length;
+                        this.stats.bookings.week = weekBookings.length;
+                        
+                        // 使用本周预约数据计算状态分布
+                        this.calculateBookingStatus(weekBookings);
+                        
+                        this.loading = false;
+                    }).catch(error => {
+                        console.error('获取预约统计失败:', error);
+                        this.loading = false;
+                    });
+                },
+                
+                // 计算预约状态分布
+                calculateBookingStatus(bookings) {
+                    const statusMap = {
+                        0: { status: 0, statusText: '未开始', count: 0 },
+                        1: { status: 1, statusText: '进行中', count: 0 },
+                        2: { status: 2, statusText: '已完成', count: 0 },
+                        3: { status: 3, statusText: '已取消', count: 0 },
+                        4: { status: 4, statusText: '已过期', count: 0 }
+                    };
+                    
+                    // 统计各状态数量
+                    bookings.forEach(booking => {
+                        if (statusMap[booking.status]) {
+                            statusMap[booking.status].count++;
+                        }
+                    });
+                    
+                    // 计算总数和百分比
+                    const total = bookings.length;
+                    this.bookingStatusData = Object.values(statusMap).map(item => ({
+                        ...item,
+                        percentage: total > 0 ? Math.round((item.count / total) * 100) : 0
+                    }));
+                },
+                
+                // 获取状态标签类型
+                getStatusTagType(status) {
+                    const typeMap = {
+                        0: 'info',    // 未开始
+                        1: 'warning', // 进行中
+                        2: 'success', // 已完成
+                        3: 'danger',  // 已取消
+                        4: 'info'     // 已过期
+                    };
+                    return typeMap[status] || 'info';
+                },
+                
+                // 获取状态文本
+                getStatusText(status) {
+                    const statusMap = {
+                        0: '未开始',
+                        1: '进行中',
+                        2: '已完成',
+                        3: '已取消',
+                        4: '已过期'
+                    };
+                    return statusMap[status] || '未知';
+                },
+                
+                // 获取状态颜色
+                getStatusColor(status) {
+                    const colorMap = {
+                        0: '#909399', // 未开始
+                        1: '#E6A23C', // 进行中
+                        2: '#67C23A', // 已完成
+                        3: '#F56C6C', // 已取消
+                        4: '#909399'  // 已过期
+                    };
+                    return colorMap[status] || '#909399';
+                },
+                
+                // 格式化日期
+                formatDate(date) {
+                    return dayjs(date).format('YYYY-MM-DD');
+                },
+                
+                // 处理用户下拉菜单命令
+                handleUserCommand(command) {
+                    if (command === 'logout') {
+                        Auth.logout();
+                        window.location.href = '/index.html';
+                    }
+                },
+                
+                // 页面跳转
+                goToPage(page) {
+                    this.activeMenu = page;
+                    const pageMap = {
+                        dashboard: 'dashboard.html',
+                        facilities: 'facilities.html',
+                        bookings: 'bookings.html'
+                    };
+                    if (pageMap[page] && page !== 'dashboard') {
+                        window.location.href = pageMap[page];
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+
