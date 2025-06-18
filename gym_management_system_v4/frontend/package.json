@@ -1,0 +1,47 @@
+{
+  "name": "sports-venue-system",
+  "version": "1.0.0",
+  "description": "体育场馆预约系统前端",
+  "main": "index.html",
+  "scripts": {
+    "dev": "live-server --port=3000",
+    "build": "echo 'No build process needed for static files'",
+    "test": "echo 'No tests specified'"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dayjs": "^1.11.10",
+    "echarts": "^5.4.3",
+    "element-ui": "^2.15.14",
+    "vue": "^2.7.14"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  },
+  "keywords": [
+    "sports",
+    "venue",
+    "booking",
+    "management",
+    "system"
+  ],
+  "author": "Development Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/sports-venue-system.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/sports-venue-system/issues"
+  },
+  "homepage": "https://github.com/your-org/sports-venue-system#readme",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}
+

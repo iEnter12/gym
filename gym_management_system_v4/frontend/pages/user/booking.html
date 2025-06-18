@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>场馆预约 - 健身房管理系统</title>
+    <link rel="stylesheet" href="../../assets/css/element-ui.css">
+    <link rel="stylesheet" href="../../assets/css/common.css">
+    <link rel="stylesheet" href="../../assets/css/user.css">
+</head>
+<body>
+    <div id="app">
+        <el-container>
+            <el-header>
+                <div class="header-content">
+                    <h1>场馆预约</h1>
+                <div class="user-info">
+                        <span>{{ userInfo.username }}</span>
+                        <el-button type="text" @click="logout">退出</el-button>
+                    </div>
+                </div>
+            </el-header>
+            
+            <el-main>
+                <el-row :gutter="20" v-loading="loading">
+                    <el-col :span="8" v-for="facility in facilities" :key="facility.id">
+                        <el-card class="facility-card">
+                            <div slot="header">
+                                <span>{{ facility.name }}</span>
+                            </div>
+                            <div class="facility-info">
+                                <p><i class="el-icon-location"></i> {{ facility.location }}</p>
+                                <p><i class="el-icon-money"></i> {{ formatPrice(facility.price) }}</p>
+                                <p><i class="el-icon-info"></i> {{ facility.description }}</p>
+                                </div>
+                            <div class="facility-actions">
+                                <el-button type="primary" @click="showBookingDialog(facility)">
+                                    立即预约
+                                </el-button>
+                            </div>
+                        </el-card>
+                    </el-col>
+                </el-row>
+            </el-main>
+        </el-container>
+
+        <!-- 预约对话框 -->
+        <el-dialog
+            title="预约场馆"
+            :visible.sync="dialogVisible"
+            width="500px">
+            <el-form :model="bookingForm" :rules="rules" ref="bookingForm" label-width="100px">
+                <el-form-item label="场馆" prop="facility">
+                    <span>{{ currentFacility ? currentFacility.name : '' }}</span>
+                </el-form-item>
+                <el-form-item label="日期" prop="date">
+                                        <el-date-picker
+                        v-model="bookingForm.date"
+                                            type="date"
+                        placeholder="选择日期"
+                        :picker-options="{
+                            disabledDate(time) {
+                                return time.getTime() < Date.now() - 8.64e7;
+                            }
+                        }">
+                                        </el-date-picker>
+                                    </el-form-item>
+                <el-form-item label="时间段" prop="time_slot">
+                    <el-select v-model="bookingForm.time_slot" placeholder="请选择时间段">
+                        <el-option
+                            v-for="slot in timeSlots"
+                            :key="slot.value"
+                            :label="slot.label"
+                            :value="slot.value">
+                        </el-option>
+                    </el-select>
+                                    </el-form-item>
+                <el-form-item label="时长" prop="duration">
+                    <el-select v-model="bookingForm.duration" placeholder="请选择时长">
+                        <el-option
+                            v-for="duration in durations"
+                            :key="duration.value"
+                            :label="duration.label"
+                            :value="duration.value">
+                        </el-option>
+                    </el-select>
+                                    </el-form-item>
+                                </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="submitBooking">确 定</el-button>
+            </div>
+        </el-dialog>
+    </div>
+
+    <script src="../../assets/js/vue.js"></script>
+    <script src="../../assets/js/element-ui.js"></script>
+    <script src="../../utils/api.js"></script>
+    <script src="../../utils/auth.js"></script>
+    <script src="../../utils/mock.js"></script>
+    <script type="module">
+        import Booking from '../../assets/js/pages/user/booking.js';
+        
+        new Vue({
+            el: '#app',
+            ...Booking
+        });
+    </script>
+</body>
+</html>
+

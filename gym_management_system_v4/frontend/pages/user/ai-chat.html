@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI助手 - 体育场馆预约系统</title>
+    <link rel="stylesheet" href="../../assets/css/common.css">
+    <link rel="stylesheet" href="../../assets/css/user.css">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/dayjs@1.11.10/dayjs.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- 顶部导航 -->
+        <div class="header">
+            <div class="header-container">
+                <div class="logo">
+                    <i class="el-icon-trophy"></i>
+                    <span>体育场馆预约系统</span>
+                </div>
+                
+                <div class="nav-menu">
+                    <div class="nav-item" @click="goToPage('home')">
+                        <i class="el-icon-house"></i>
+                        首页
+                    </div>
+                    <div class="nav-item" @click="goToPage('facilities')">
+                        <i class="el-icon-office-building"></i>
+                        场馆列表
+                    </div>
+                    <div class="nav-item" @click="goToPage('profile')">
+                        <i class="el-icon-user"></i>
+                        个人中心
+                    </div>
+                    <div class="nav-item active">
+                        <i class="el-icon-chat-dot-round"></i>
+                        AI助手
+                    </div>
+                </div>
+                
+                <div class="user-info">
+                    <el-dropdown @command="handleUserCommand">
+                        <span class="user-dropdown">
+                            <el-avatar :src="userInfo.avatar" :size="32">
+                                {{ userInfo.real_name ? userInfo.real_name.charAt(0) : 'U' }}
+                            </el-avatar>
+                            <span class="username">{{ userInfo.real_name || userInfo.username }}</span>
+                            <i class="el-icon-arrow-down"></i>
+                        </span>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <div class="main-content">
+            <div class="ai-chat-page">
+                <!-- 页面标题 -->
+                <div class="page-header">
+                    <div class="container">
+                        <h1>
+                            <i class="el-icon-chat-dot-round"></i>
+                            AI智能助手
+                        </h1>
+                        <p>我是您的专属体育场馆预约助手，可以帮您解答问题、推荐场馆、协助预约</p>
+                    </div>
+                </div>
+
+                <!-- 聊天区域 -->
+                <div class="chat-section">
+                    <div class="container">
+                        <div class="chat-container">
+                            <!-- 聊天主区域 -->
+                            <div class="chat-main">
+                                <!-- 聊天消息区域 -->
+                                <div class="chat-messages" ref="chatMessages">
+                                    <div
+                                        v-for="message in messages"
+                                        :key="message.id"
+                                        class="message-item"
+                                        :class="{ 'user-message': message.type === 'user', 'ai-message': message.type === 'ai' }">
+                                        
+                                        <div v-if="message.type === 'ai'" class="message-avatar">
+                                            <el-avatar :size="40" style="background: var(--primary-color);">
+                                                <i class="el-icon-chat-dot-round"></i>
+                                            </el-avatar>
+                                        </div>
+                                        
+                                        <div class="message-content">
+                                            <div class="message-bubble">
+                                                <div v-if="message.type === 'ai'" class="message-header">
+                                                    <span class="message-sender">AI助手</span>
+                                                    <span class="message-time">{{ formatTime(message.timestamp) }}</span>
+                                                </div>
+                                                <div v-else class="message-header">
+                                                    <span class="message-sender">{{ userInfo.username || '您' }}</span>
+                                                    <span class="message-time">{{ formatTime(message.timestamp) }}</span>
+                                                </div>
+                                                <div class="message-text" v-html="formatMessage(message.content)"></div>
+                                            </div>
+                                            
+                                            <div v-if="message.actions && message.actions.length > 0" class="message-actions">
+                                                <el-button 
+                                                    v-for="action in message.actions" 
+                                                    :key="action.id"
+                                                    size="small" 
+                                                    type="primary" 
+                                                    plain
+                                                    @click="handleMessageAction(action)">
+                                                    {{ action.label }}
+                                                </el-button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div v-if="message.type === 'user'" class="message-avatar">
+                                            <el-avatar :size="40" :src="userInfo.avatar">
+                                                {{ userInfo.username ? userInfo.username.charAt(0).toUpperCase() : 'U' }}
+                                            </el-avatar>
+                                        </div>
+                                    </div>
+                                    
+                                    <div v-if="isTyping" class="message-item ai-message">
+                                        <div class="message-avatar">
+                                            <el-avatar :size="40" style="background: var(--primary-color);">
+                                                <i class="el-icon-chat-dot-round"></i>
+                                            </el-avatar>
+                                        </div>
+                                        <div class="message-content">
+                                            <div class="message-bubble">
+                                                <div class="message-header">
+                                                    <span class="message-sender">AI助手</span>
+                                                    <span class="message-time">{{ formatTime(new Date()) }}</span>
+                                                </div>
+                                                <div class="message-text typing-indicator">
+                                                    <span></span>
+                                                    <span></span>
+                                                    <span></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 输入区域 -->
+                                <div class="chat-input">
+                                    <el-input
+                                        v-model="inputMessage"
+                                        type="text"
+                                        placeholder="输入您的问题..."
+                                        @keyup.enter.native="sendMessage"
+                                        :disabled="isTyping">
+                                        <el-button 
+                                            slot="append" 
+                                            icon="el-icon-s-promotion" 
+                                            @click="sendMessage"
+                                            :disabled="isTyping">
+                                            发送
+                                        </el-button>
+                                    </el-input>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../utils/api.js"></script>
+    <script src="../../utils/auth.js"></script>
+    <script src="../../utils/mock.js"></script>
+    <script type="module">
+        import aiChat from '../../assets/js/pages/user/ai-chat.js';
+        new Vue(aiChat).$mount('#app');
+    </script>
+</body>
+</html>
+

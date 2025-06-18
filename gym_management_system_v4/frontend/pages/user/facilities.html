@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>场馆列表 - 健身房管理系统</title>
+    <!-- 引入Element UI样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- 引入Font Awesome图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- 引入自定义样式 -->
+    <link rel="stylesheet" href="../../assets/css/common.css">
+    <link rel="stylesheet" href="../../assets/css/user.css">
+    <link rel="stylesheet" href="../../assets/css/facilities.css">
+</head>
+<body>
+    <div id="app">
+        <!-- 顶部导航 -->
+        <div class="header">
+            <div class="header-container">
+                <div class="logo">
+                    <i class="el-icon-trophy"></i>
+                    <span>体育场馆预约系统</span>
+                </div>
+                
+                <div class="nav-menu">
+                    <div class="nav-item" @click="goToPage('home')">
+                        <i class="el-icon-house"></i>
+                        首页
+                    </div>
+                    <div class="nav-item active">
+                        <i class="el-icon-office-building"></i>
+                        场馆列表
+                    </div>
+                    <div class="nav-item" @click="goToPage('profile')">
+                        <i class="el-icon-user"></i>
+                        个人中心
+                    </div>
+                    <div class="nav-item" @click="goToPage('ai')">
+                        <i class="el-icon-chat-dot-round"></i>
+                        AI助手
+                    </div>
+                </div>
+                
+                <div class="user-info">
+                    <el-dropdown @command="handleUserCommand">
+                        <span class="user-dropdown">
+                            <el-avatar :src="userInfo.avatar" :size="32">
+                                {{ userInfo.real_name ? userInfo.real_name.charAt(0) : 'U' }}
+                            </el-avatar>
+                            <span class="username">{{ userInfo.real_name || userInfo.username }}</span>
+                            <i class="el-icon-arrow-down"></i>
+                        </span>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <div class="main-content">
+            <div class="facilities-page">
+                <!-- 搜索和筛选区域 -->
+                <div class="search-filter-section">
+                    <div class="container">
+                        <div class="search-filter-container">
+                            <!-- 搜索栏 -->
+                            <div class="search-section">
+                                <el-input
+                                    v-model="searchKeyword"
+                                    placeholder="搜索场馆名称或关键词"
+                                    prefix-icon="el-icon-search"
+                                    size="large"
+                                    @keyup.enter="handleSearch"
+                                    class="search-input">
+                                    <el-button slot="append" type="primary" @click="handleSearch">
+                                        搜索
+                                    </el-button>
+                                </el-input>
+                            </div>
+
+                            <!-- 类型筛选 -->
+                            <div class="filter-section">
+                                <div class="filter-title">场馆类型：</div>
+                                <div class="filter-tags">
+                                    <el-tag
+                                        :type="selectedType === null ? 'primary' : ''"
+                                        @click="selectType(null)"
+                                        class="filter-tag">
+                                        <i class="el-icon-menu"></i>
+                                        全部
+                                    </el-tag>
+                                    <el-tag
+                                        v-for="type in facilityTypes"
+                                        :key="type.type_id"
+                                        :type="selectedType === type.type_id ? 'primary' : ''"
+                                        @click="selectType(type.type_id)"
+                                        class="filter-tag">
+                                        <i :class="type.icon"></i>
+                                        {{ type.type_name }}
+                                    </el-tag>
+                                </div>
+                            </div>
+
+                            <!-- 排序选项 -->
+                            <div class="sort-section">
+                                <span class="sort-label">排序：</span>
+                                <el-radio-group v-model="sortBy" @change="handleSort" size="small">
+                                    <el-radio-button label="default">默认</el-radio-button>
+                                    <el-radio-button label="price_asc">价格从低到高</el-radio-button>
+                                    <el-radio-button label="price_desc">价格从高到低</el-radio-button>
+                                    <el-radio-button label="capacity_desc">容量从大到小</el-radio-button>
+                                </el-radio-group>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 场馆列表 -->
+                <div class="facilities-list-section">
+                    <div class="container">
+                        <!-- 结果统计 -->
+                        <div class="result-info">
+                            <span class="result-count">共找到 {{ filteredFacilities.length }} 个场馆</span>
+                            <div class="view-mode">
+                                <el-radio-group v-model="viewMode" size="small">
+                                    <el-radio-button label="grid">
+                                        <i class="el-icon-menu"></i>
+                                    </el-radio-button>
+                                    <el-radio-button label="list">
+                                        <i class="el-icon-s-unfold"></i>
+                                    </el-radio-button>
+                                </el-radio-group>
+                            </div>
+                        </div>
+
+                        <!-- 网格视图 -->
+                        <div v-if="viewMode === 'grid'" class="facilities-grid">
+                            <div
+                                v-for="facility in paginatedFacilities"
+                                :key="facility.facility_id"
+                                class="facility-card">
+                                <div class="facility-image" @click="goToBooking(facility.facility_id)">
+                                    <img :src="facility.image_url" :alt="facility.facility_name">
+                                    <div class="facility-status" :class="getStatusClass(facility.status)">
+                                        {{ getStatusText(facility.status) }}
+                                    </div>
+                                </div>
+                                <div class="facility-info">
+                                    <div class="facility-header">
+                                    <h3>{{ facility.facility_name }}</h3>
+                                        <div class="facility-type">
+                                            <i :class="getFacilityTypeIcon(facility.type_id)"></i>
+                                            {{ facility.type_name }}
+                                        </div>
+                                    </div>
+                                    <p class="facility-location">
+                                        <i class="el-icon-location"></i>
+                                        {{ facility.location }}
+                                    </p>
+                                    <p class="facility-description">{{ facility.description }}</p>
+                                    <div class="facility-meta">
+                                        <div class="meta-item">
+                                            <i class="el-icon-user"></i>
+                                            <span>{{ facility.capacity }}人</span>
+                                        </div>
+                                        <div class="meta-item">
+                                            <i class="el-icon-crop"></i>
+                                            <span>{{ facility.area }}㎡</span>
+                                        </div>
+                                        <div class="facility-price">
+                                            ¥{{ facility.price }}/小时
+                                        </div>
+                                    </div>
+                                    <div class="facility-actions">
+                                        <el-button type="primary" size="small" @click="goToBooking(facility.facility_id)">
+                                            立即预约
+                                        </el-button>
+                                        <el-button type="text" size="small" @click="goToBooking(facility.facility_id)">
+                                            查看详情
+                                        </el-button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 列表视图 -->
+                        <div v-if="viewMode === 'list'" class="facilities-list">
+                            <div
+                                v-for="facility in paginatedFacilities"
+                                :key="facility.facility_id"
+                                class="facility-list-item">
+                                <div class="facility-image" @click="goToBooking(facility.facility_id)">
+                                    <img :src="facility.image_url" :alt="facility.facility_name">
+                                    <div class="facility-status" :class="getStatusClass(facility.status)">
+                                        {{ getStatusText(facility.status) }}
+                                    </div>
+                                </div>
+                                <div class="facility-content">
+                                    <div class="facility-header">
+                                        <h3>{{ facility.facility_name }}</h3>
+                                        <div class="facility-type-tag">
+                                            <i :class="getFacilityTypeIcon(facility.type_id)"></i>
+                                            {{ facility.type_name }}
+                                        </div>
+                                    </div>
+                                    <p class="facility-location">
+                                        <i class="el-icon-location"></i>
+                                        {{ facility.location }}
+                                    </p>
+                                    <p class="facility-description">{{ facility.description }}</p>
+                                    <div class="facility-meta">
+                                        <span class="meta-item">
+                                            <i class="el-icon-user"></i>
+                                            容量：{{ facility.capacity }}人
+                                        </span>
+                                        <span class="meta-item">
+                                            <i class="el-icon-crop"></i>
+                                            面积：{{ facility.area }}㎡
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="facility-actions">
+                                    <div class="facility-price">
+                                        ¥{{ facility.price }}<span>/小时</span>
+                                    </div>
+                                    <div class="action-buttons">
+                                        <el-button type="primary" @click="goToBooking(facility.facility_id)">
+                                            立即预约
+                                        </el-button>
+                                        <el-button type="text" @click="goToBooking(facility.facility_id)">
+                                            查看详情
+                                        </el-button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 分页 -->
+                        <div class="pagination-section">
+                            <el-pagination
+                                @size-change="handleSizeChange"
+                                @current-change="handleCurrentChange"
+                                :current-page="currentPage"
+                                :page-sizes="[12, 24, 48]"
+                                :page-size="pageSize"
+                                layout="total, sizes, prev, pager, next, jumper"
+                                :total="filteredFacilities.length">
+                            </el-pagination>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入Vue -->
+    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+    <!-- 引入Element UI -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <!-- 引入axios -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <!-- 引入工具类 -->
+    <script src="../../utils/api.js"></script>
+    <!-- 引入Auth工具类 -->
+    <script src="../../utils/auth.js"></script>
+    <!-- 引入页面脚本 -->
+    <script type="module">
+        import facilities from '../../assets/js/pages/user/facilities.js';
+        new Vue(facilities).$mount('#app');
+    </script>
+</body>
+</html>
+
